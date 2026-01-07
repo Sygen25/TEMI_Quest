@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Feedback da Questão</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1DB5B5",
+              "primary-hover": "#179e9e",
+              "primary-light": "#E8F8F8",
+              "background-light": "#F8FAFC",
+              "background-dark": "#101322",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1e2130",
+              "success": "#1DB5B5",
+              "error": "#EF4444",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"],
+              "body": ["Noto Sans", "sans-serif"],
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem", 
+              "lg": "0.5rem", 
+              "xl": "0.75rem", 
+              "2xl": "1rem",
+              "3xl": "1.5rem",
+              "4xl": "2rem",
+              "full": "9999px"
+            },
+            boxShadow: {
+                'top': '0 -4px 25px rgba(0, 0, 0, 0.05)',
+                'glow': '0 0 25px rgba(29, 181, 181, 0.3)',
+                'soft': '0 4px 20px rgba(0,0,0,0.03)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] summary ~ * {
+            animation: sweep .35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes sweep {
+            0%    {opacity: 0; transform: translateY(-10px); max-height: 0;}
+            100%  {opacity: 1; transform: translateY(0); max-height: 500px;}
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-pop-in {
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+        }
+    </style>
+<style>
+    body {
+      min-height: 100dvh;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-100/80 font-display flex items-end justify-center min-h-screen w-full overflow-hidden p-0 sm:items-center sm:p-4 text-gray-800">
+<div class="fixed inset-0 -z-10 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&amp;w=2070&amp;auto=format&amp;fit=crop')] bg-cover bg-center">
+<div class="absolute inset-0 bg-gray-900/10 backdrop-blur-[2px]"></div>
+</div>
+<div class="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-top sm:shadow-2xl flex flex-col max-h-[94vh] h-auto transition-all duration-300 ease-in-out relative animate-slide-up overflow-hidden ring-1 ring-black/5">
+<div class="flex-none pt-5 pb-2 flex justify-center w-full cursor-grab active:cursor-grabbing bg-surface-light dark:bg-surface-dark z-10">
+<div class="h-1.5 w-12 rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide px-6 pb-6">
+<div class="flex flex-col items-center justify-center py-6 text-center space-y-5">
+<div class="relative group animate-pop-in">
+<div class="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150 opacity-50"></div>
+<div class="relative h-24 w-24 rounded-full bg-primary-light dark:bg-primary/10 flex items-center justify-center ring-4 ring-surface-light dark:ring-surface-dark shadow-lg">
+<span class="material-symbols-outlined text-primary text-[48px]" style="font-variation-settings: 'FILL' 1, 'wght' 700;">check_circle</span>
+</div>
+</div>
+<div class="space-y-2">
+<h2 class="text-gray-900 dark:text-white text-[28px] font-bold leading-tight tracking-tight">
+                        Correto!
+                    </h2>
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+<span class="text-gray-500 dark:text-gray-400 text-sm font-medium">Sua resposta:</span>
+<span class="flex items-center justify-center w-6 h-6 rounded bg-primary text-white text-xs font-bold shadow-sm shadow-primary/30">B</span>
+</div>
+</div>
+</div>
+<div class="w-full border-t border-gray-100 dark:border-gray-800 my-2"></div>
+<div class="space-y-6 mt-4">
+<details class="group rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden transition-all duration-300 open:ring-2 open:ring-primary/20 open:shadow-glow" open="">
+<summary class="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 select-none bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">school</span>
+</div>
+<p class="text-gray-900 dark:text-white text-[15px] font-bold leading-normal">Comentário do Professor</p>
+</div>
+<div class="h-8 w-8 rounded-full flex items-center justify-center text-gray-400 group-open:bg-primary/10 group-open:text-primary transition-all duration-300">
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform duration-300 text-[22px]">expand_more</span>
+</div>
+</summary>
+<div class="px-5 pb-5 pt-4 bg-white dark:bg-surface-dark border-t border-gray-50 dark:border-gray-800">
+<div class="prose prose-sm max-w-none dark:prose-invert">
+<p class="text-gray-600 dark:text-gray-300 text-[15px] font-normal leading-7">
+                                A alternativa <strong class="text-primary font-bold">B</strong> está correta pois, segundo as diretrizes da <span class="px-1.5 py-0.5 rounded-md bg-primary-light dark:bg-primary/20 text-primary font-bold text-xs border border-primary/10">AMIB 2023</span>, o tratamento inicial para choque séptico envolve a reposição volêmica imediata de 30ml/kg de cristaloides.
+                            </p>
+<div class="mt-4 pl-4 border-l-[3px] border-primary/30 py-1 bg-gray-50 dark:bg-gray-800/30 rounded-r-lg">
+<p class="text-sm italic text-gray-500 dark:text-gray-400 pl-2 leading-relaxed">
+                                    "As demais alternativas sugerem doses ou fluidos não recomendados como primeira linha de tratamento na fase inicial de ressuscitação volêmica."
+                                </p>
+</div>
+</div>
+</div>
+</details>
+<div class="grid grid-cols-2 gap-3">
+<div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-soft flex flex-col justify-center gap-1">
+<span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Dificuldade</span>
+<div class="flex items-center gap-1.5 text-yellow-500">
+<span class="material-symbols-outlined text-[20px] filled" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-bold text-gray-700 dark:text-gray-200">Difícil</span>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-soft flex flex-col justify-center gap-1">
+<span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">% Acerto</span>
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+<span class="font-bold">42%</span>
+</div>
+</div>
+</div>
+<div class="pt-2">
+<p class="text-[11px] text-gray-400 dark:text-gray-500 mb-3 pl-1 font-bold uppercase tracking-wider">Referências &amp; Tags</p>
+<div class="flex gap-2 flex-wrap">
+<span class="group inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3.5 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-gray-400 text-[16px] group-hover:text-primary transition-colors">description</span>
+<span class="text-gray-600 dark:text-gray-300 text-xs font-medium group-hover:text-primary transition-colors">AMIB 2023</span>
+</span>
+<span class="group inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3.5 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-gray-400 text-[16px] group-hover:text-primary transition-colors">local_hospital</span>
+<span class="text-gray-600 dark:text-gray-300 text-xs font-medium group-hover:text-primary transition-colors">Sepse</span>
+</span>
+<span class="group inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3.5 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-gray-400 text-[16px] group-hover:text-primary transition-colors">monitor_heart</span>
+<span class="text-gray-600 dark:text-gray-300 text-xs font-medium group-hover:text-primary transition-colors">Hemodinâmica</span>
+</span>
+</div>
+</div>
+<div class="flex justify-center pt-4 pb-2">
+<button class="group flex items-center gap-1.5 py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">flag</span>
+<span class="text-xs font-semibold text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300">Reportar erro na questão</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex-none p-5 pt-4 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 z-20 pb-8 sm:pb-5">
+<button class="w-full h-14 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white rounded-2xl text-[16px] font-bold tracking-wide shadow-lg shadow-primary/25 transition-all transform flex items-center justify-center gap-2.5">
+<span>Próxima Questão</span>
+<span class="material-symbols-outlined text-[20px] stroke-[3]">arrow_forward</span>
+</button>
+</div>
+</div>
+</body></html>

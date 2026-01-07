@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Menu do Usuário - App Médico</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1DB5B5",
+              "primary-dark": "#168f8f",
+              "background-light": "#f8fafc",
+              "background-dark": "#122020",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a2c2c",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "2xl": "1rem",
+                "3xl": "1.5rem",
+                "full": "9999px"
+            },
+            boxShadow: {
+                'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            }
+          },
+        },
+      }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-50 font-display text-slate-900 antialiased selection:bg-primary/30 h-screen w-full flex justify-center overflow-hidden">
+<div class="relative flex h-full w-full max-w-md flex-col bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden">
+<div class="flex items-center bg-surface-light dark:bg-surface-dark px-4 py-3 justify-between shrink-0 z-20 shadow-sm border-b border-gray-100 dark:border-gray-800">
+<button class="text-slate-500 dark:text-gray-300 flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">
+            Menu
+        </h2>
+<div class="size-10"></div> 
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar pb-6 bg-background-light dark:bg-background-dark">
+<div class="flex flex-col items-center pt-8 pb-6 px-6 gap-5 bg-surface-light dark:bg-surface-dark rounded-b-3xl shadow-soft mb-4 border-b border-gray-100 dark:border-gray-800">
+<div class="relative group cursor-pointer">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 ring-4 ring-primary/20 dark:ring-primary/10 shadow-lg transition-transform transform group-hover:scale-105 duration-300" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVfoeL-g-kvqt-ZPfQviHNF_q38pqAhNQHIcbyNAzjepdC8n7zp3iO9eUyE-Als5jf0FZvTgphUEWqzSN1xacgI5ZaRh4j9etqLVRuS0CO-vZmq5h85NZye17khj6YtBAzWPPerNKgOutafGoV8qebXx4orpncuc2CEODxHdsGqb_A5vQ4gMFGUEQNvRUjHwWleuc2xpMT9VMcjjl4Q6P1smk87pQoF162jKpQhFokI0WF8kihh3Mg1Pr5CdLm4aJ0UNi0eF3cFEM");'>
+</div>
+<button class="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-full border-[3px] border-surface-light dark:border-surface-dark shadow-md flex items-center justify-center hover:bg-primary-dark transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<div class="flex flex-col items-center justify-center gap-1">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight text-center">Dr. Ana Silva</h3>
+<p class="text-gray-500 dark:text-gray-400 font-medium text-sm text-center">Medicina Intensiva - R3</p>
+<div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-primary/10 to-primary/5 text-primary border border-primary/20">
+<span class="material-symbols-outlined text-[14px] mr-1">verified</span>
+                    Assinante Premium
+                </div>
+</div>
+</div>
+<div class="px-5 mb-6">
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-1 rounded-2xl bg-surface-light dark:bg-surface-dark p-4 items-center text-center shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-full mb-1">
+<span class="material-symbols-outlined text-blue-500 dark:text-blue-400">quiz</span>
+</div>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight">1,240</p>
+<p class="text-gray-400 dark:text-gray-500 text-xs font-medium uppercase tracking-wide">Questões</p>
+</div>
+<div class="flex flex-col gap-1 rounded-2xl bg-surface-light dark:bg-surface-dark p-4 items-center text-center shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full mb-1">
+<span class="material-symbols-outlined text-primary">pie_chart</span>
+</div>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight">85%</p>
+<p class="text-gray-400 dark:text-gray-500 text-xs font-medium uppercase tracking-wide">Acertos</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-5">
+<p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 ml-1">Conta</p>
+<button class="flex items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-all w-full group">
+<div class="flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-slate-900 dark:text-white text-[15px] font-semibold leading-normal">Meu Perfil</p>
+<p class="text-gray-400 text-xs">Dados pessoais e especialidade</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-all w-full group">
+<div class="flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined">bar_chart</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-slate-900 dark:text-white text-[15px] font-semibold leading-normal">Estatísticas</p>
+<p class="text-gray-400 text-xs">Seu progresso detalhado</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-all w-full group">
+<div class="flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined">credit_card</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-slate-900 dark:text-white text-[15px] font-semibold leading-normal">Assinatura</p>
+<p class="text-gray-400 text-xs">Gerenciar plano Premium</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 mt-4 ml-1">Aplicativo</p>
+<button class="flex items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-all w-full group">
+<div class="flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-slate-900 dark:text-white text-[15px] font-semibold leading-normal">Configurações</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-all w-full group">
+<div class="flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined">help</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-slate-900 dark:text-white text-[15px] font-semibold leading-normal">Ajuda e Suporte</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="mt-4 flex items-center justify-center gap-2 w-full py-4 text-rose-500 font-semibold hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-2xl transition-colors active:scale-[0.99]">
+<span class="material-symbols-outlined">logout</span>
+                Sair da Conta
+            </button>
+<p class="text-center text-[10px] text-gray-300 dark:text-gray-600 mt-2 mb-6">Versão 1.0.2 (Build 450) • MedQuiz</p>
+</div>
+</div>
+<div class="shrink-0 bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 px-6 py-2 pb-5 flex justify-between items-center z-20">
+<button class="flex flex-col items-center gap-1.5 p-1 text-gray-400 hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[26px]">home</span>
+<span class="text-[10px] font-medium">Início</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 p-1 text-gray-400 hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[26px]">quiz</span>
+<span class="text-[10px] font-medium">Questões</span>
+</button>
+<button class="relative flex flex-col items-center gap-1.5 p-1 text-gray-400 hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[26px]">leaderboard</span>
+<span class="text-[10px] font-medium">Ranking</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 p-1 text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[26px] fill-current">person</span>
+<span class="text-[10px] font-semibold">Perfil</span>
+</button>
+</div>
+</div>
+
+</body></html>

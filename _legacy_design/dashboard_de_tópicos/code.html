@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard de Tópicos</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1DB5B5",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101322",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a1d2d",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "0.75rem",
+                "xl": "1rem",
+                "2xl": "1.5rem",
+                "full": "9999px"
+            },
+            boxShadow: {
+                'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-x-hidden transition-colors duration-300">
+<header class="px-6 pt-12 pb-2 bg-surface-light dark:bg-surface-dark rounded-b-3xl shadow-sm z-10 sticky top-0">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="h-14 w-14 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border-2 border-primary" data-alt="Portrait of a doctor smiling" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCL1O9wbtqdBrh5xAbgG-NoBUL-m5ewCL0_hOmAX4hUbSmx_uoRnfwgjJO8WfBcOzxb3vM33epDc1aJfgMMrzCOv2yYEcryOkye1Fa7ThGR-d4KZXoSDKCJpK_TyENI_eEMKsbMpXQAMyb1vfYDXQ_WGAmhgiS9RxYwJAYNWhq5KL7Au2Nz61qfhAPECL0S1tO0JkGDLLYi857vZ65T5Si4q_kDW0bXspwks0Qk3cMRIntjK3nage2sbJsW2WdOOUejDB7fhG00h1M');">
+</div>
+<div class="flex flex-col justify-center">
+<h1 class="text-xl font-bold text-slate-900 dark:text-white leading-tight">Dr. André</h1>
+</div>
+</div>
+<button class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+<span class="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-surface-light dark:border-surface-dark"></span>
+</button>
+</div>
+<div class="flex flex-col gap-2 mb-4">
+<div class="flex justify-between items-end">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Progresso Geral</span>
+<span class="text-sm font-bold text-primary">35%</span>
+</div>
+<div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 35%"></div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 py-6 pb-24 space-y-6">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3.5 border-none rounded-xl bg-white dark:bg-surface-dark text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary/50 shadow-sm text-base transition-all" placeholder="Buscar tópicos (ex: Sepse, Trauma)" type="text"/>
+</div>
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Tópicos de Estudo</h2>
+<button class="text-sm font-medium text-primary hover:text-primary/80">Ver todos</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined filled">ecg_heart</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Hemodinâmica</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">120 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">air</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Ventilação</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">95 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 25%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">coronavirus</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Infectologia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">130 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 80%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">neurology</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Neuro</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">85 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 15%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">monitor_heart</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Cardiologia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">110 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Nefrologia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">65 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 10%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Cirurgia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">80 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 5%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">wifi_tethering</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">POCUS</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">25 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">pregnant_woman</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Obstetrícia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">50 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">library_books</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">MBE</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">40 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 90%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">volunteer_activism</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Paliativos</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">30 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">medication</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Endócrino</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">60 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 20%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Gastro</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">45 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 10%"></div>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+<span class="material-symbols-outlined">bloodtype</span>
+</div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">Hematologia</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">55 Questões</p>
+<div class="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 30%"></div>
+</div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full bg-surface-light dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-safe z-50">
+<div class="flex justify-around items-center h-16 px-2">
+<button class="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
+<span class="material-symbols-outlined filled text-[28px]">dashboard</span>
+<span class="text-[10px] font-medium">Início</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+<span class="material-symbols-outlined text-[28px]">quiz</span>
+<span class="text-[10px] font-medium">Simulados</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+<span class="material-symbols-outlined text-[28px]">bar_chart</span>
+<span class="text-[10px] font-medium">Desempenho</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="text-[10px] font-medium">Perfil</span>
+</button>
+</div>
+</nav>
+</body></html>
