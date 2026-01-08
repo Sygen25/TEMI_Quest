@@ -3,31 +3,36 @@ import { useState, useEffect } from 'react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
 import { useUser } from '../contexts/UserContext';
+import { BarChart2, User } from 'lucide-react';
 
 // Static topics data to match the design (now with dynamic progress state)
 const STATIC_TOPICS = [
-    { title: 'Hemodinâmica', icon: 'ecg_heart', count: '120 Questões' },
-    { title: 'Ventilação', icon: 'air', count: '95 Questões' },
-    { title: 'Infectologia', icon: 'coronavirus', count: '130 Questões' },
-    { title: 'Neuro', icon: 'neurology', count: '85 Questões' },
-    { title: 'Cardiologia', icon: 'monitor_heart', count: '110 Questões' },
-    { title: 'Nefrologia', icon: 'water_drop', count: '65 Questões' },
-    { title: 'Cirurgia', icon: 'medical_services', count: '80 Questões' },
-    { title: 'POCUS', icon: 'wifi_tethering', count: '25 Questões' },
-    { title: 'Obstetrícia', icon: 'pregnant_woman', count: '50 Questões' },
-    { title: 'MBE', icon: 'library_books', count: '40 Questões' },
-    { title: 'Paliativos', icon: 'volunteer_activism', count: '30 Questões' },
-    { title: 'Endócrino', icon: 'medication', count: '60 Questões' },
-    { title: 'Gastro', icon: 'restaurant', count: '45 Questões' },
-    { title: 'Hematologia', icon: 'bloodtype', count: '55 Questões' },
+    { title: 'Hemodinâmica', icon: 'favorite', count: 'Oficial' },
+    { title: 'Ventilação mecânica', icon: 'air', count: 'Oficial' },
+    { title: 'Monitorização multimodal', icon: 'monitoring', count: 'Oficial' },
+    { title: 'Cardiologia', icon: 'ecg', count: 'Oficial' },
+    { title: 'Nutrição', icon: 'restaurant', count: 'Oficial' },
+    { title: 'Gastroenterologia', icon: 'medication', count: 'Oficial' },
+    { title: 'Nefrologia', icon: 'water_drop', count: 'Oficial' },
+    { title: 'Neurointensivismo', icon: 'psychology', count: 'Oficial' },
+    { title: 'Endocrinologia', icon: 'health_and_safety', count: 'Oficial' },
+    { title: 'Cirurgia e Trauma', icon: 'medical_services', count: 'Oficial' },
+    { title: 'Sepse e infecções', icon: 'coronavirus', count: 'Oficial' },
+    { title: 'Oncologia e hematologia', icon: 'biotech', count: 'Oficial' },
+    { title: 'Obstetrícia', icon: 'child_care', count: 'Oficial' },
+    { title: 'Gestão em UTI', icon: 'analytics', count: 'Oficial' },
+    { title: 'Cuidados paliativos', icon: 'volunteer_activism', count: 'Oficial' },
+    { title: 'MBE', icon: 'library_books', count: 'Oficial' },
+    { title: 'Miscelânea', icon: 'category', count: 'Oficial' },
 ];
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const { user } = useUser();
-    const [progressMap, setProgressMap] = useState<Record<string, number>>({});
+    const [searchTerm, setSearchTerm] = useState('');
     const [globalProgress, setGlobalProgress] = useState(0);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [progressMap, setProgressMap] = useState<Record<string, number>>({});
 
     useEffect(() => {
         async function loadProgress() {
@@ -49,6 +54,10 @@ export default function Dashboard() {
         }
         loadProgress();
     }, []);
+
+    const filteredTopics = STATIC_TOPICS.filter(topic =>
+        topic.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
@@ -77,7 +86,7 @@ export default function Dashboard() {
                     </button>
                 </div>
 
-                {/* Progress Bar - Restored from Original Design */}
+                {/* Progress Bar */}
                 <div className="flex flex-col gap-2 mb-4">
                     <div className="flex justify-between items-end">
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Progresso Geral</span>
@@ -99,53 +108,51 @@ export default function Dashboard() {
                         className="block w-full pl-10 pr-3 py-3.5 border-none rounded-xl bg-white dark:bg-surface-dark text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary/50 shadow-sm text-base transition-all"
                         placeholder="Buscar tópicos (ex: Sepse, Trauma)"
                         type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Tópicos de Estudo</h2>
-                    <button className="text-sm font-medium text-primary hover:text-primary/80">Ver todos</button>
                 </div>
 
                 {/* Topics Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                    {STATIC_TOPICS.map((topic) => (
-                        <div
-                            key={topic.title}
-                            onClick={() => navigate(`/quiz/${encodeURIComponent(topic.title)}`)}
-                            className="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10"
-                        >
-                            <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
-                                <span className="material-symbols-outlined">{topic.icon}</span>
+                    {filteredTopics.length > 0 ? (
+                        filteredTopics.map((topic) => (
+                            <div
+                                key={topic.title}
+                                onClick={() => navigate(`/quiz/${encodeURIComponent(topic.title)}`)}
+                                className="group bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-primary/10"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 text-primary">
+                                    <span className="material-symbols-outlined">{topic.icon}</span>
+                                </div>
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100 leading-tight">{topic.title}</h3>
                             </div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight">{topic.title}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{topic.count}</p>
-
-                            <div className="mt-3 w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
-                                <div className="bg-primary h-full rounded-full transition-all duration-1000" style={{ width: `${progressMap[topic.title] || 0}%` }}></div>
-                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-2 text-center py-10 text-slate-400">
+                            Nenhum tópico encontrado para "{searchTerm}"
                         </div>
-                    ))}
+                    )}
                 </div>
             </main>
 
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 w-full bg-surface-light dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-safe z-50">
                 <div className="flex justify-around items-center h-16 px-2">
-                    <button className="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
+                    <button onClick={() => navigate('/')} className="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
                         <span className="material-symbols-outlined filled text-[28px]">dashboard</span>
                         <span className="text-[10px] font-medium">Início</span>
                     </button>
-                    <button className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <span className="material-symbols-outlined text-[28px]">quiz</span>
-                        <span className="text-[10px] font-medium">Simulados</span>
-                    </button>
-                    <button className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <span className="material-symbols-outlined text-[28px]">bar_chart</span>
-                        <span className="text-[10px] font-medium">Desempenho</span>
+                    <button onClick={() => navigate('/analytics')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <BarChart2 className="w-6 h-6" />
+                        <span className="text-[10px] font-bold tracking-tight">Análise</span>
                     </button>
                     <button onClick={() => navigate('/profile')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <span className="material-symbols-outlined text-[28px]">person</span>
+                        <User className="w-6 h-6" />
                         <span className="text-[10px] font-medium">Perfil</span>
                     </button>
                 </div>

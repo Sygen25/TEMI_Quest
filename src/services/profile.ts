@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { getClientId } from './progress';
 
 export interface UserProfile {
     id?: number;
@@ -13,18 +12,22 @@ const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCL1O
 
 export const ProfileService = {
     async getProfile(): Promise<UserProfile> {
-        const clientId = getClientId();
-
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('No active session');
+
+            const userId = session.user.id;
+            const email = session.user.email || '';
+
             const { data, error } = await supabase
                 .from('user_profiles')
                 .select('*')
-                .eq('client_id', clientId)
+                .eq('client_id', userId) // Using auth ID as client_id for backward compatibility in schema
                 .single();
 
             if (error && error.code === 'PGRST116') {
-                // No profile exists, create one
-                return this.createProfile();
+                // No profile exists, create one with auth data
+                return this.createProfile(userId, email, session.user.user_metadata?.display_name);
             }
 
             if (error) throw error;
@@ -35,8 +38,9 @@ export const ProfileService = {
             };
         } catch (error) {
             console.error('Error fetching profile:', error);
+            // Return a safe placeholder
             return {
-                client_id: clientId,
+                client_id: 'guest',
                 display_name: 'Usuário',
                 email: '',
                 avatar_url: DEFAULT_AVATAR
@@ -44,20 +48,18 @@ export const ProfileService = {
         }
     },
 
-    async createProfile(): Promise<UserProfile> {
-        const clientId = getClientId();
-
+    async createProfile(userId: string, email: string, displayName?: string): Promise<UserProfile> {
         const newProfile: Partial<UserProfile> = {
-            client_id: clientId,
-            display_name: 'Usuário',
-            email: '',
+            client_id: userId,
+            display_name: displayName || 'Colega Médico',
+            email: email,
             avatar_url: null
         };
 
         try {
             const { data, error } = await supabase
                 .from('user_profiles')
-                .insert(newProfile)
+                .upsert(newProfile, { onConflict: 'client_id' })
                 .select()
                 .single();
 
@@ -70,25 +72,26 @@ export const ProfileService = {
         } catch (error) {
             console.error('Error creating profile:', error);
             return {
-                client_id: clientId,
+                client_id: userId,
                 display_name: 'Usuário',
-                email: '',
+                email: email,
                 avatar_url: DEFAULT_AVATAR
             };
         }
     },
 
     async updateProfile(updates: Partial<UserProfile>): Promise<boolean> {
-        const clientId = getClientId();
-
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return false;
+
             const { error } = await supabase
                 .from('user_profiles')
                 .update({
                     ...updates,
                     updated_at: new Date().toISOString()
                 })
-                .eq('client_id', clientId);
+                .eq('client_id', session.user.id);
 
             if (error) throw error;
             return true;
@@ -99,11 +102,14 @@ export const ProfileService = {
     },
 
     async uploadAvatar(file: File): Promise<string | null> {
-        const clientId = getClientId();
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${clientId}-${Date.now()}.${fileExt}`;
-
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return null;
+
+            const userId = session.user.id;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${userId}-${Date.now()}.${fileExt}`;
+
             // Upload image
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
@@ -112,29 +118,21 @@ export const ProfileService = {
                     upsert: true
                 });
 
-            if (uploadError) {
-                console.error('Upload error:', uploadError);
-                throw uploadError;
-            }
+            if (uploadError) throw uploadError;
 
             // Get public URL
             const { data: { publicUrl } } = supabase.storage
                 .from('avatars')
                 .getPublicUrl(fileName);
 
-            // Update profile with new avatar URL directly
-            const { error: updateError } = await supabase
+            // Update profile
+            await supabase
                 .from('user_profiles')
                 .update({
                     avatar_url: publicUrl,
                     updated_at: new Date().toISOString()
                 })
-                .eq('client_id', clientId);
-
-            if (updateError) {
-                console.error('Update error:', updateError);
-                throw updateError;
-            }
+                .eq('client_id', userId);
 
             return publicUrl;
         } catch (error) {

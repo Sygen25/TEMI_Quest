@@ -12,7 +12,6 @@ export default function Settings() {
 
     // Form state
     const [displayName, setDisplayName] = useState('');
-    const [email, setEmail] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
 
     // UI state
@@ -28,7 +27,6 @@ export default function Settings() {
     async function loadProfile() {
         const data = await ProfileService.getProfile();
         setDisplayName(data.display_name);
-        setEmail(data.email || '');
         setAvatarUrl(data.avatar_url || '');
 
         const admin = await NotificationService.isAdmin();
@@ -40,8 +38,7 @@ export default function Settings() {
     async function handleSave() {
         setSaving(true);
         const success = await ProfileService.updateProfile({
-            display_name: displayName,
-            email: email
+            display_name: displayName
         });
 
         if (success) {
@@ -156,17 +153,13 @@ export default function Settings() {
                     </div>
 
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 font-bold opacity-50">
                             <Mail className="w-4 h-4" />
-                            E-mail
+                            E-mail (Não pode ser alterado)
                         </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="seu@email.com"
-                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        />
+                        <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400">
+                            {(useUser().user?.email) || 'Não informado'}
+                        </div>
                     </div>
 
                     <button

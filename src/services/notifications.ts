@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { getClientId } from './progress';
+
 
 export interface Notification {
     id: number;
@@ -11,9 +11,15 @@ export interface Notification {
     is_read?: boolean;
 }
 
+async function getUserId(): Promise<string | null> {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id || null;
+}
+
 export const NotificationService = {
     async getAll(): Promise<Notification[]> {
-        const clientId = getClientId();
+        const clientId = await getUserId();
+        if (!clientId) return [];
 
         try {
             // Get all notifications
@@ -43,7 +49,8 @@ export const NotificationService = {
     },
 
     async markAsRead(notificationId: number): Promise<void> {
-        const clientId = getClientId();
+        const clientId = await getUserId();
+        if (!clientId) return;
 
         try {
             await supabase
@@ -58,7 +65,8 @@ export const NotificationService = {
     },
 
     async markAllAsRead(): Promise<void> {
-        const clientId = getClientId();
+        const clientId = await getUserId();
+        if (!clientId) return;
 
         try {
             const { data: notifications } = await supabase
@@ -81,7 +89,8 @@ export const NotificationService = {
     },
 
     async getUnreadCount(): Promise<number> {
-        const clientId = getClientId();
+        const clientId = await getUserId();
+        if (!clientId) return 0;
 
         try {
             const { data: notifications } = await supabase
@@ -103,7 +112,8 @@ export const NotificationService = {
 
     // Admin functions
     async isAdmin(): Promise<boolean> {
-        const clientId = getClientId();
+        const clientId = await getUserId();
+        if (!clientId) return false;
 
         try {
             const { data } = await supabase

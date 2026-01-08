@@ -11,22 +11,50 @@ import {
     TrendingUp,
     Brain,
     HeartPulse,
-    Sun,
     Home,
     GraduationCap,
     Play,
     BarChart2,
-    User
+    User,
+    Wind,
+    Droplets,
+    Baby,
+    Heart,
+    Pill,
+    Activity,
+    Utensils,
+    Droplet,
+    Microscope,
+    Biohazard,
+    Zap,
+    Scale,
+    FileText,
+    Boxes,
+    Stethoscope as TraumaIcon
 } from 'lucide-react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
 import { useUser } from '../contexts/UserContext';
 
-// Topics to show stats for
+// Official Clinical Topics (TEMI 2026)
 const PROFILE_TOPICS = [
-    { title: 'Neurointensivismo', icon: Brain, color: 'purple' },
     { title: 'Hemodinâmica', icon: HeartPulse, color: 'red' },
-    { title: 'Infectologia', icon: Sun, color: 'amber' },
+    { title: 'Ventilação mecânica', icon: Wind, color: 'blue' },
+    { title: 'Monitorização multimodal', icon: Zap, color: 'amber' },
+    { title: 'Cardiologia', icon: Activity, color: 'red' },
+    { title: 'Nutrição', icon: Utensils, color: 'green' },
+    { title: 'Gastroenterologia', icon: Droplet, color: 'orange' },
+    { title: 'Nefrologia', icon: Droplets, color: 'blue' },
+    { title: 'Neurointensivismo', icon: Brain, color: 'purple' },
+    { title: 'Endocrinologia', icon: Pill, color: 'pink' },
+    { title: 'Cirurgia e Trauma', icon: TraumaIcon, color: 'rose' },
+    { title: 'Sepse e infecções', icon: Biohazard, color: 'emerald' },
+    { title: 'Oncologia e hematologia', icon: Microscope, color: 'red' },
+    { title: 'Obstetrícia', icon: Baby, color: 'indigo' },
+    { title: 'Gestão em UTI', icon: Scale, color: 'gray' },
+    { title: 'Cuidados paliativos', icon: Heart, color: 'rose' },
+    { title: 'MBE', icon: FileText, color: 'blue' },
+    { title: 'Miscelânea', icon: Boxes, color: 'slate' },
 ];
 
 interface GlobalStats {
@@ -179,16 +207,12 @@ export default function Profile() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4">
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3 rounded-2xl shadow-sm text-sm font-bold text-slate-700 dark:text-slate-200">
-                        <Pencil className="w-4 h-4" />
-                        Editar Perfil
-                    </button>
+                <div className="flex flex-col">
                     <button
                         onClick={() => navigate('/history')}
-                        className="flex-1 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-2xl shadow-lg shadow-teal-500/20 text-sm font-bold transition-all"
+                        className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white py-3.5 rounded-2xl shadow-lg shadow-teal-500/20 text-sm font-bold transition-all"
                     >
-                        <History className="w-4 h-4" />
+                        <History className="w-5 h-5" />
                         Histórico de Questões
                     </button>
                 </div>
@@ -342,8 +366,18 @@ export default function Profile() {
                                 const Icon = topicConfig?.icon || Brain;
                                 const colorClasses = {
                                     purple: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', bar: 'bg-purple-500' },
-                                    red: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', bar: 'bg-teal-500' },
+                                    red: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', bar: 'bg-red-500' },
                                     amber: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', bar: 'bg-amber-500' },
+                                    blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', bar: 'bg-blue-500' },
+                                    gray: { bg: 'bg-slate-100 dark:bg-slate-900/30', text: 'text-slate-600 dark:text-slate-400', bar: 'bg-slate-500' },
+                                    teal: { bg: 'bg-teal-100 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', bar: 'bg-teal-500' },
+                                    pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400', bar: 'bg-pink-500' },
+                                    indigo: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', bar: 'bg-indigo-500' },
+                                    rose: { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600 dark:text-rose-400', bar: 'bg-rose-500' },
+                                    orange: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', bar: 'bg-orange-500' },
+                                    green: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', bar: 'bg-green-500' },
+                                    emerald: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', bar: 'bg-emerald-500' },
+                                    slate: { bg: 'bg-slate-100 dark:bg-slate-900/30', text: 'text-slate-600 dark:text-slate-400', bar: 'bg-slate-500' },
                                 };
                                 const colors = colorClasses[topicConfig?.color as keyof typeof colorClasses] || colorClasses.purple;
 
@@ -355,7 +389,7 @@ export default function Profile() {
                                             </div>
                                             <div className="flex-1">
                                                 <h4 className="font-bold text-slate-900 dark:text-white">{stat.title}</h4>
-                                                <p className="text-xs text-slate-400">{stat.total} questões</p>
+                                                <p className="text-xs text-slate-400">Taxa de acertos</p>
                                             </div>
                                             <span className="font-bold text-slate-900 dark:text-white">{stat.percentage}%</span>
                                         </div>

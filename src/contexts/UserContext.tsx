@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
 import { ProfileService } from '../services/profile';
 import type { UserProfile } from '../services/profile';
 
@@ -16,7 +17,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadUser();
+        // Handle auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session) {
+                await loadUser();
+            } else {
+                setUser(null);
+                setLoading(false);
+            }
+        });
+
+        // Initial session check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                loadUser();
+            } else {
+                setLoading(false);
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
     async function loadUser() {
@@ -25,12 +47,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUser(profile);
         } catch (error) {
             console.error('Failed to load user profile in context', error);
+            setUser(null);
         } finally {
             setLoading(false);
         }
     }
 
     async function refreshUser() {
+        setLoading(true);
         await loadUser();
     }
 
