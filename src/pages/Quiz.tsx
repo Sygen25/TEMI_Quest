@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, ArrowRight, Home, HelpCircle, Check, X, Info } from 'lucide-react';
+import { ProgressService } from '../services/progress';
 
 interface Question {
     id: number;
@@ -24,6 +25,7 @@ export default function Quiz() {
     const [loading, setLoading] = useState(true);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
+    const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
 
     async function fetchRandomQuestion() {
         setIsAnswered(false);
@@ -44,6 +46,7 @@ export default function Quiz() {
                 // Pick random
                 const randomQ = data[Math.floor(Math.random() * data.length)];
                 setQuestion(randomQ);
+                setQuestionStartTime(Date.now()); // Reset timer when new question loads
             }
         } catch (err) {
             console.error('Error fetching question:', err);
@@ -56,11 +59,23 @@ export default function Quiz() {
         fetchRandomQuestion();
     }, [topic]);
 
+    // Import removed from here
+
+    // ... (imports remain)
+
+    // ...
+
     const handleOptionClick = (option: string) => {
-        if (isAnswered) return;
+        if (isAnswered || !question) return;
 
         setSelectedOption(option);
         setIsAnswered(true);
+
+        const isCorrect = question.resposta_correta === option;
+        const timeSpentSeconds = Math.round((Date.now() - questionStartTime) / 1000);
+
+        // Save using the service with time tracking
+        ProgressService.saveAnswer(question.id, question.topico, isCorrect, timeSpentSeconds);
     };
 
     const getOptionStyle = (option: string) => {
