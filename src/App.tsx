@@ -5,6 +5,7 @@ import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import AdminPanel from './pages/AdminPanel';
 import Settings from './pages/Settings';
+import History from './pages/History';
 import { UserProvider } from './contexts/UserContext';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/quiz/:topic" element={<Quiz />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/history" element={<History />} />
                     <Route path="/admin" element={<AdminPanel />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<Navigate to="/" />} />

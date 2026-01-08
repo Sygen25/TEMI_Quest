@@ -138,5 +138,35 @@ export const ProgressService = {
             console.error('Error fetching weekly stats:', error);
             return [];
         }
+    },
+
+    async getHistory(limit: number = 50) {
+        const clientId = getClientId();
+
+        try {
+            // Join with questao table to get question details
+            const { data, error } = await supabase
+                .from('user_progress')
+                .select(`
+                    id,
+                    is_correct,
+                    created_at,
+                    topico,
+                    questao:question_id (
+                        enunciado,
+                        resposta_correta
+                    )
+                `)
+                .eq('client_id', clientId)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+
+            if (error) throw error;
+
+            return data;
+        } catch (error) {
+            console.error('Error fetching history:', error);
+            return [];
+        }
     }
 };

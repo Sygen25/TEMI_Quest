@@ -184,7 +184,10 @@ export default function Profile() {
                         <Pencil className="w-4 h-4" />
                         Editar Perfil
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-2xl shadow-lg shadow-teal-500/20 text-sm font-bold transition-all">
+                    <button
+                        onClick={() => navigate('/history')}
+                        className="flex-1 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-2xl shadow-lg shadow-teal-500/20 text-sm font-bold transition-all"
+                    >
                         <History className="w-4 h-4" />
                         Histórico de Questões
                     </button>
