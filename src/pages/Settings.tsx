@@ -8,7 +8,7 @@ import { useUser } from '../contexts/UserContext';
 export default function Settings() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { refreshUser } = useUser();
+    const { refreshUser, user } = useUser();
 
     // Form state
     const [displayName, setDisplayName] = useState('');
@@ -158,7 +158,7 @@ export default function Settings() {
                             E-mail (Não pode ser alterado)
                         </label>
                         <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400">
-                            {(useUser().user?.email) || 'Não informado'}
+                            {(user?.email) || 'Não informado'}
                         </div>
                     </div>
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, ArrowRight, Home, HelpCircle, Check, X, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home } from 'lucide-react';
 import { ProgressService } from '../services/progress';
+import QuestionDisplay from '../components/QuestionDisplay';
 
 interface Question {
     id: number;
@@ -21,8 +22,6 @@ interface Question {
 
     resposta_correta: string; // 'A', 'B', 'C', 'D'
     expansao_conhecimento?: string;
-
-
     topico: string;
 }
 
@@ -110,38 +109,6 @@ export default function Quiz() {
         ProgressService.saveAnswer(question.id, question.topico, isCorrect, timeSpentSeconds, option);
     };
 
-    const getOptionStyle = (option: string) => {
-        const baseStyle = "group relative flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-300";
-
-        if (!isAnswered) {
-            return `${baseStyle} bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-primary/40 dark:hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5`;
-        }
-
-        const isSelected = selectedOption === option;
-        const isCorrect = question?.resposta_correta === option;
-
-        if (isCorrect) {
-            return `${baseStyle} border-green-500 bg-green-50 dark:bg-green-900/20 shadow-glow ring-1 ring-green-500`;
-        }
-
-        if (isSelected && !isCorrect) {
-            return `${baseStyle} border-red-500 bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500`;
-        }
-
-        return `${baseStyle} bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 opacity-60`;
-    };
-
-    const parseBold = (text: string) => {
-        if (!text) return null;
-        const parts = text.split(/(\*\*.*?\*\*)/g);
-        return parts.map((part, index) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={index} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
-            }
-            return part;
-        });
-    };
-
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando questão...</div>;
     }
@@ -183,108 +150,18 @@ export default function Quiz() {
             </div>
 
             <main className="flex-1 px-5 py-6 w-full max-w-lg mx-auto">
-                {/* Enunciado */}
-                <div className="mb-6 bg-white dark:bg-slate-800/40 rounded-2xl p-5 shadow-soft border border-slate-100 dark:border-slate-700/50">
-                    <h1 className="text-[18px] leading-[1.6] font-medium text-slate-700 dark:text-slate-200 text-justify whitespace-pre-line">
-                        {question.enunciado}
-                    </h1>
-                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-                        <p className="text-[17px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <HelpCircle className="text-primary w-6 h-6" />
-                            Qual a alternativa correta?
-                        </p>
-                    </div>
-                </div>
-
-                {question.imagem_url && question.imagem_url.trim().length > 10 && (
-                    <div className="mb-8 group relative w-full aspect-video bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden shadow-md border border-slate-200 dark:border-slate-700">
-                        <img src={question.imagem_url} alt="Questão" className="w-full h-full object-cover" />
-                    </div>
-                )}
-
-                {/* Options List */}
-                <div className="flex flex-col gap-5">
-                    {['A', 'B', 'C', 'D'].map((opt) => {
-                        const optLower = opt.toLowerCase() as 'a' | 'b' | 'c' | 'd';
-                        const text = (question as any)[`alt_${optLower}`];
-                        const explanation = (question as any)[`explicacao_${optLower}`];
-
-                        if (!text) return null;
-
-                        const isSelected = selectedOption === opt;
-                        const isCorrect = question.resposta_correta === opt;
-
-                        const shouldShowExplanation = isAnswered;
-
-                        return (
-                            <div key={opt} className="flex flex-col gap-2">
-                                {/* Button Section */}
-                                <label className={getOptionStyle(opt)} onClick={() => handleOptionClick(opt)}>
-                                    <div className={`relative flex shrink-0 items-center justify-center w-10 h-10 rounded-xl font-bold text-base transition-all duration-300 
-                        ${isAnswered && isCorrect ? 'bg-green-500 text-white' :
-                                            isAnswered && isSelected && !isCorrect ? 'bg-red-500 text-white' :
-                                                'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 group-hover:bg-slate-100'
-                                        }`}>
-                                        {opt}
-                                    </div>
-                                    <div className="flex-1 py-1">
-                                        <p className="text-[16px] font-medium text-slate-600 dark:text-slate-300">
-                                            {text}
-                                        </p>
-                                    </div>
-                                    {isAnswered && isCorrect && (
-                                        <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0">
-                                            <Check size={16} strokeWidth={3} />
-                                        </div>
-                                    )}
-                                    {isAnswered && isSelected && !isCorrect && (
-                                        <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white shrink-0">
-                                            <X size={16} strokeWidth={3} />
-                                        </div>
-                                    )}
-                                </label>
-
-                                {/* Inline Explanation Card */}
-                                {isAnswered && shouldShowExplanation && explanation && (
-                                    <div className={`animate-in fade-in slide-in-from-top-2 duration-300 ml-2 mr-2 p-4 rounded-xl text-sm leading-relaxed text-justify border
-                                        ${isCorrect
-                                            ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-800 text-slate-700 dark:text-slate-300'
-                                            : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800 text-slate-700 dark:text-slate-300'
-                                        }`}>
-                                        <span className={`font-bold mr-1 ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                            {isCorrect ? 'Correto:' : 'Incorreto:'}
-                                        </span>
-                                        {parseBold(explanation)}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Expansão do Conhecimento (Global) */}
-                {isAnswered && question.expansao_conhecimento && (
-                    <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-5 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <Info size={100} />
-                            </div>
-                            <div className="flex items-center gap-2 mb-3 text-blue-700 dark:text-blue-300 font-bold uppercase text-xs tracking-widest z-10 relative">
-                                <Info size={16} />
-                                Expansão do Conhecimento
-                            </div>
-                            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-[15px] z-10 relative text-justify whitespace-pre-line">
-                                {parseBold(question.expansao_conhecimento)}
-                            </p>
-                        </div>
-                    </div>
-                )}
-
+                <QuestionDisplay
+                    question={question}
+                    selectedOption={selectedOption}
+                    onOptionSelect={handleOptionClick}
+                    showFeedback={true}
+                    isAnswered={isAnswered}
+                />
             </main>
 
             {/* Floating Bottom Bar */}
             {isAnswered && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 p-5 bg-white/90 dark:bg-background-dark/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom-full">
+                <div className="fixed bottom-0 left-0 right-0 z-40 p-5 bg-white/90 dark:bg-background-dark/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom-full mt-safe">
                     <div className="w-full max-w-lg mx-auto flex gap-4">
                         {isReviewMode ? (
                             <button onClick={() => navigate(-1)} className="flex-1 h-[52px] bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-[16px] font-bold rounded-2xl shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">

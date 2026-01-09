@@ -42,11 +42,12 @@ export default function Analytics() {
             const topicsMap = new Map<string, { correct: number; total: number; time: number }>();
 
             history.forEach((item: any) => {
-                const existing = topicsMap.get(item.topico) || { correct: 0, total: 0, time: 0 };
+                const topicName = item.topico || 'Geral';
+                const existing = topicsMap.get(topicName) || { correct: 0, total: 0, time: 0 };
                 existing.total++;
                 if (item.is_correct) existing.correct++;
                 existing.time += item.time_spent_seconds || 0;
-                topicsMap.set(item.topico, existing);
+                topicsMap.set(topicName, existing);
             });
 
             const topicInsights: TopicInsight[] = Array.from(topicsMap.entries()).map(([title, s]) => ({
