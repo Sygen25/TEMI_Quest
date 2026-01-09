@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+// import { useUser } from '../contexts/UserContext';
 import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 
 export default function Login() {
+    console.log('Login component mounted - v2.0'); // Force HMR update
     const navigate = useNavigate();
+    // const { refreshUser } = useUser(); // Unused now
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -14,16 +17,23 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        console.log('[Login] Attempting sign-in for:', email);
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
-            if (error) throw error;
-            navigate('/');
+            if (signInError) throw signInError;
+            if (signInError) throw signInError;
+            console.log('[Login] Sign-in successful. Navigation to /');
+
+            // Bypass blocked getSession() - Trust onAuthStateChange
+            navigate('/', { replace: true });
+
         } catch (err: any) {
+            console.error('[Login] Login flow error:', err);
             setError(err.message || 'Erro ao realizar login');
         } finally {
             setLoading(false);

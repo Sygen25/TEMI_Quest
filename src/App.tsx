@@ -12,9 +12,11 @@ import Analytics from './pages/Analytics';
 import { UserProvider, useUser } from './contexts/UserContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const { user, loading } = useUser();
+    const { session, loading, user } = useUser();
+    console.log('[ProtectedRoute] Rendering', { loading, hasSession: !!session, hasProfile: !!user });
 
     if (loading) {
+        console.log('[ProtectedRoute] Showing spinner');
         return (
             <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
                 <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -22,10 +24,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         );
     }
 
-    if (!user) {
+    if (!session) {
+        console.warn('[ProtectedRoute] No session found, redirecting to /login');
         return <Navigate to="/login" replace />;
     }
 
+    // Optional: Could show a "Setting up profile..." spinner here if user is null but session exists
+    // But for now we allow render, assuming UI components handle null user gracefully or we just wait for the background fetch
+    console.log('[ProtectedRoute] Access granted to session:', session.user.id);
     return <>{children}</>;
 }
 

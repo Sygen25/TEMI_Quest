@@ -31,23 +31,61 @@ export default function Quiz() {
         setIsAnswered(false);
         setSelectedOption(null);
         setQuestion(null);
+        setLoading(true);
 
         try {
-            // Fetch all questions for the topic
-            // In a real app with many questions, use .range() and random offset
-            const { data, error } = await supabase
-                .from('Questoes')
-                .select('*')
-                .eq('topico', topic);
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
 
-            if (error) throw error;
+            // Raw Fetch Bypass for Questions
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://orpdpcvwwftnncsyzbwq.supabase.co';
+            const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'sb_publishable_kISpxfZJHmxn4uzC1NeELg_thEVRNWA';
 
-            if (data && data.length > 0) {
-                // Pick random
-                const randomQ = data[Math.floor(Math.random() * data.length)];
-                setQuestion(randomQ);
-                setQuestionStartTime(Date.now()); // Reset timer when new question loads
+            console.log('[Quiz] Fetching questions (RAW) for topic:', topic);
+
+            // Encode topic to handle spaces and special chars safely
+            const encodedTopic = encodeURIComponent(topic || '');
+
+            // 5 Second Timeout for Network Hangs
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/Questoes?topico=eq.${encodedTopic}&select=*`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Fetch failed: ${response.status} ${errText}`);
+                }
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    // Pick random
+                    const randomQ = data[Math.floor(Math.random() * data.length)];
+                    setQuestion(randomQ);
+                    setQuestionStartTime(Date.now()); // Reset timer when new question loads
+                } else {
+                    console.warn('[Quiz] No questions found for topic:', topic);
+                }
+            } catch (fetchErr: any) {
+                if (fetchErr.name === 'AbortError') {
+                    console.error('[Quiz] Request timed out explicitly via AbortController');
+                    throw new Error('Tempo limite excedido ao buscar questões.');
+                }
+                throw fetchErr;
             }
+
         } catch (err) {
             console.error('Error fetching question:', err);
         } finally {
@@ -56,14 +94,10 @@ export default function Quiz() {
     }
 
     useEffect(() => {
-        fetchRandomQuestion();
+        if (topic) {
+            fetchRandomQuestion();
+        }
     }, [topic]);
-
-    // Import removed from here
-
-    // ... (imports remain)
-
-    // ...
 
     const handleOptionClick = (option: string) => {
         if (isAnswered || !question) return;

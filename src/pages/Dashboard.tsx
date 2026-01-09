@@ -32,27 +32,22 @@ export default function Dashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [globalProgress, setGlobalProgress] = useState(0);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [progressMap, setProgressMap] = useState<Record<string, number>>({});
 
     useEffect(() => {
-        async function loadProgress() {
-            // Load individual topic progress
-            const newMap: Record<string, number> = {};
-            for (const topic of STATIC_TOPICS) {
-                const stats = await ProgressService.getTopicStats(topic.title);
-                newMap[topic.title] = stats.percentage;
+        async function loadDashboardData() {
+            try {
+                // Load global progress
+                const global = await ProgressService.getAllStats();
+                setGlobalProgress(global.percentage);
+
+                // Load unread notifications count
+                const unread = await NotificationService.getUnreadCount();
+                setUnreadCount(unread);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
             }
-            setProgressMap(newMap);
-
-            // Load global progress
-            const global = await ProgressService.getAllStats();
-            setGlobalProgress(global.percentage);
-
-            // Load unread notifications count
-            const unread = await NotificationService.getUnreadCount();
-            setUnreadCount(unread);
         }
-        loadProgress();
+        loadDashboardData();
     }, []);
 
     const filteredTopics = STATIC_TOPICS.filter(topic =>
