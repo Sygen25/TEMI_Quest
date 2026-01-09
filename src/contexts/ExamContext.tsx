@@ -305,20 +305,31 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
         if (!sessionId) return;
 
         try {
-            // Calculate score
+            // Calculate score and prepare is_correct updates
             let correctCount = 0;
             const totalAnswered = Object.keys(answers).length;
+            const correctnessUpdates: { questionId: number; isCorrect: boolean }[] = [];
+
             for (const [questionId, selectedOption] of Object.entries(answers)) {
                 const question = questions.find(q => q.id === parseInt(questionId));
-                if (question && question.resposta_correta === selectedOption) {
-                    correctCount++;
-                }
+                const isCorrect = question?.resposta_correta?.toUpperCase() === selectedOption?.toUpperCase();
+                if (isCorrect) correctCount++;
+                correctnessUpdates.push({ questionId: parseInt(questionId), isCorrect });
             }
             const score = questions.length > 0 ? (correctCount / questions.length) * 100 : 0;
 
             console.log('Completing exam session:', sessionId);
 
-            // CRITICAL: Ensure DB update succeeds
+            // Update is_correct for each answer (for analytics)
+            for (const update of correctnessUpdates) {
+                await supabase
+                    .from('exam_answers')
+                    .update({ is_correct: update.isCorrect })
+                    .eq('session_id', sessionId)
+                    .eq('question_id', update.questionId);
+            }
+
+            // Update session as completed
             const { error } = await supabase
                 .from('exam_sessions')
                 .update({
@@ -333,7 +344,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
             if (error) {
                 console.error("Failed to complete exam in DB:", error);
                 alert("Erro ao salvar finalização no banco de dados. Tente novamente.");
-                throw error; // Stop execution, don't clear local state
+                throw error;
             }
 
             // Only clear local state if DB update was successful
@@ -342,7 +353,6 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
             setSessionId(null);
         } catch (error) {
             console.error("Critical error in endExam:", error);
-            // Verify if it was network error or something else
         }
     }, [sessionId, answers, questions]);
 

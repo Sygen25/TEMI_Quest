@@ -35,14 +35,25 @@ export default function Analytics() {
     async function loadData() {
         setLoading(true);
         try {
-            const allStats = await ProgressService.getAllStats();
+            const [allStats, topicData] = await Promise.all([
+                ProgressService.getAllStats(),
+                ProgressService.getTopicInsights()
+            ]);
+
             setStats({
                 percentage: allStats.percentage,
                 avgTimeSeconds: allStats.avgTimeSeconds
             });
-            // Topic insights are not available without additional DB columns
-            // For now, Analytics will show only global stats
-            setInsights([]);
+
+            // Map topic insights to UI format
+            const topicInsights: TopicInsight[] = topicData.map(t => ({
+                title: t.name,
+                percentage: t.percentage,
+                total: t.total,
+                avgTime: 0 // Not tracked yet
+            }));
+
+            setInsights(topicInsights);
         } catch (error) {
             console.error('Error loading analytics', error);
         } finally {
