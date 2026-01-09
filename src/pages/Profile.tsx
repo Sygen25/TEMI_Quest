@@ -13,7 +13,6 @@ import {
     HeartPulse,
     Home,
     GraduationCap,
-    Play,
     BarChart2,
     User,
     Wind,
@@ -415,14 +414,6 @@ export default function Profile() {
                         <GraduationCap className="w-6 h-6" />
                         <span className="text-[10px] font-medium">Estudo</span>
                     </button>
-
-                    {/* FAB */}
-                    <div className="absolute left-1/2 -top-6 transform -translate-x-1/2">
-                        <button className="w-14 h-14 bg-teal-500 rounded-full shadow-lg shadow-teal-500/30 flex items-center justify-center text-white border-4 border-slate-50 dark:border-background-dark hover:scale-105 transition-transform active:scale-95">
-                            <Play className="w-6 h-6 ml-1 fill-current" />
-                        </button>
-                        <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] font-bold text-teal-600 dark:text-teal-400">Quiz</span>
-                    </div>
 
                     <button className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors ml-8">
                         <BarChart2 className="w-6 h-6" />

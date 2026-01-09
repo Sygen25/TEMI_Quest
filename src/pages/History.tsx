@@ -8,10 +8,12 @@ interface HistoryItem {
     is_correct: boolean;
     created_at: string;
     topico: string;
+    selected_option?: string;
     questao: {
         enunciado: string;
         resposta_correta: string;
     };
+
 }
 
 export default function History() {
@@ -133,17 +135,21 @@ export default function History() {
                 ) : (
                     <div className="space-y-4">
                         {filteredHistory.map((item) => (
-                            <div key={item.id} className="bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+                            <div
+                                key={item.id}
+                                onClick={() => navigate(`/quiz/${encodeURIComponent(item.topico)}`, { state: { question: item.questao, isCorrect: item.is_correct, selectedOption: item.selected_option } })}
+                                className="bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all active:scale-[0.99]"
+                            >
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-semibold text-primary px-2 py-1 bg-primary/10 rounded-lg">
                                         {item.topico}
                                     </span>
                                     <span className="text-xs text-slate-400 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                                        {new Date(item.created_at).toLocaleString('pt-BR')}
                                     </span>
                                 </div>
-                                <p className="text-sm text-slate-800 dark:text-slate-200 font-medium mb-3 line-clamp-2">
+                                <p className="text-sm text-slate-800 dark:text-slate-200 font-medium mb-3 line-clamp-4">
                                     {item.questao?.enunciado || 'Enunciado não disponível'}
                                 </p>
                                 <div className={`flex items-center gap-2 text-sm font-medium ${item.is_correct ? 'text-green-500' : 'text-red-500'}`}>

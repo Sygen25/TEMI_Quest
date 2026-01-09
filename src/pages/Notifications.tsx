@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, MessageSquare, Lightbulb, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, MessageSquare, Lightbulb, Settings, X, Clock } from 'lucide-react';
 import { NotificationService } from '../services/notifications';
 import type { Notification } from '../services/notifications';
 
@@ -9,6 +9,7 @@ export default function Notifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
     const [loading, setLoading] = useState(true);
+    const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
     useEffect(() => {
         loadNotifications();
@@ -26,9 +27,11 @@ export default function Notifications() {
     }
 
     async function handleNotificationClick(notification: Notification) {
+        setSelectedNotification(notification);
         if (!notification.is_read) {
             await NotificationService.markAsRead(notification.id);
-            loadNotifications();
+            // Non-blocking refresh
+            NotificationService.getAll().then(setNotifications);
         }
     }
 
@@ -168,6 +171,55 @@ export default function Notifications() {
                     ))
                 )}
             </main>
+
+            {/* Notification Detail Modal */}
+            {selectedNotification && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedNotification(null)}></div>
+                    <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                        <div className="p-8">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${getIconBgClass(selectedNotification.icon_bg_color)}`}>
+                                    {getIcon(selectedNotification.icon)}
+                                </div>
+                                <button
+                                    onClick={() => setSelectedNotification(null)}
+                                    className="p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+                                {selectedNotification.title}
+                            </h2>
+
+                            <div className="flex items-center gap-2 text-slate-400 text-sm mb-6">
+                                <Clock className="w-4 h-4" />
+                                {new Date(selectedNotification.created_at).toLocaleString('pt-BR', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50">
+                                <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line text-[16px]">
+                                    {selectedNotification.content}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => setSelectedNotification(null)}
+                                className="w-full mt-8 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-2xl shadow-lg shadow-teal-500/20 transition-all active:scale-95"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Simple Bottom Nav */}
             <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 pb-safe z-50">

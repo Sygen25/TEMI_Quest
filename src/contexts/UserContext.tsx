@@ -74,6 +74,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async function refreshUser() {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         setSession(currentSession);
+
+        if (currentSession) {
+            console.log('[UserContext] Refreshing user profile...');
+            try {
+                // Force fetch from server (could add a 'force' param to getProfile if needed, 
+                // but standard select is usually fresh enough or we can rely on supabase realtime later)
+                // For now, re-running getProfile is enough as it fetches from DB.
+                const profile = await ProfileService.getProfile(currentSession);
+                setUser(profile);
+            } catch (err) {
+                console.error('[UserContext] Failed to refresh profile:', err);
+            }
+        }
     }
 
     return (

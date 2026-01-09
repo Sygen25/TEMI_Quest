@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, ArrowRight, Home, HelpCircle, Check, X, Info } from 'lucide-react';
 import { ProgressService } from '../services/progress';
@@ -8,24 +8,35 @@ interface Question {
     id: number;
     enunciado: string;
     imagem_url: string | null;
+
+    // Alternatives
     alt_a: string;
+    explicacao_a?: string;
     alt_b: string;
+    explicacao_b?: string;
     alt_c: string;
+    explicacao_c?: string;
     alt_d: string;
+    explicacao_d?: string;
+
     resposta_correta: string; // 'A', 'B', 'C', 'D'
-    gabarito_comentado: string;
+    expansao_conhecimento?: string;
+
+
     topico: string;
 }
 
 export default function Quiz() {
     const { topic } = useParams<{ topic: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [question, setQuestion] = useState<Question | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
     const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+    const [isReviewMode, setIsReviewMode] = useState(false);
 
     async function fetchRandomQuestion() {
         if (!topic) {
@@ -38,6 +49,7 @@ export default function Quiz() {
         setSelectedOption(null);
         setQuestion(null);
         setLoading(true);
+        setIsReviewMode(false);
 
         try {
             console.log('[Quiz] Fetching questions for topic:', topic);
@@ -53,25 +65,38 @@ export default function Quiz() {
                 // Pick random
                 const randomQ = data[Math.floor(Math.random() * data.length)];
                 setQuestion(randomQ);
-                setQuestionStartTime(Date.now()); // Reset timer when new question loads
+                setQuestionStartTime(Date.now());
             } else {
                 console.warn('[Quiz] No questions found for topic:', topic);
-                setQuestion(null); // Ensure question is null if no data
+                setQuestion(null);
             }
 
         } catch (err: any) {
             console.error('[Quiz] Error fetching question:', err);
-            setQuestion(null); // Ensure question is null on error
+            setQuestion(null);
         } finally {
             setLoading(false);
         }
     }
 
     useEffect(() => {
-        if (topic) {
+        const stateQuestion = location.state?.question as Question | undefined;
+        const stateSelectedOption = location.state?.selectedOption as string | undefined;
+
+        if (stateQuestion) {
+            console.log('[Quiz] Review mode active for question:', stateQuestion.id);
+            setQuestion(stateQuestion);
+            setLoading(false);
+            setIsAnswered(true);
+            setIsReviewMode(true);
+
+            if (stateSelectedOption) {
+                setSelectedOption(stateSelectedOption);
+            }
+        } else if (topic) {
             fetchRandomQuestion();
         }
-    }, [topic]);
+    }, [topic, location.state]);
 
     const handleOptionClick = (option: string) => {
         if (isAnswered || !question) return;
@@ -82,8 +107,7 @@ export default function Quiz() {
         const isCorrect = question.resposta_correta === option;
         const timeSpentSeconds = Math.round((Date.now() - questionStartTime) / 1000);
 
-        // Save using the service with time tracking
-        ProgressService.saveAnswer(question.id, question.topico, isCorrect, timeSpentSeconds);
+        ProgressService.saveAnswer(question.id, question.topico, isCorrect, timeSpentSeconds, option);
     };
 
     const getOptionStyle = (option: string) => {
@@ -105,6 +129,17 @@ export default function Quiz() {
         }
 
         return `${baseStyle} bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 opacity-60`;
+    };
+
+    const parseBold = (text: string) => {
+        if (!text) return null;
+        const parts = text.split(/(\*\*.*?\*\*)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={index} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+            }
+            return part;
+        });
     };
 
     if (loading) {
@@ -142,7 +177,7 @@ export default function Quiz() {
                 </button>
             </header>
 
-            {/* Progress Bar (Static for now) */}
+            {/* Progress Bar */}
             <div className="w-full h-1 bg-slate-100 dark:bg-slate-800">
                 <div className="h-full bg-primary rounded-r-full" style={{ width: '30%' }}></div>
             </div>
@@ -167,52 +202,79 @@ export default function Quiz() {
                     </div>
                 )}
 
-                {/* Options */}
-                <div className="flex flex-col gap-3.5">
+                {/* Options List */}
+                <div className="flex flex-col gap-5">
                     {['A', 'B', 'C', 'D'].map((opt) => {
-                        // Dynamic property access: question.alt_a, question.alt_b etc.
-                        const text = (question as any)[`alt_${opt.toLowerCase()}`];
+                        const optLower = opt.toLowerCase() as 'a' | 'b' | 'c' | 'd';
+                        const text = (question as any)[`alt_${optLower}`];
+                        const explanation = (question as any)[`explicacao_${optLower}`];
+
                         if (!text) return null;
 
+                        const isSelected = selectedOption === opt;
+                        const isCorrect = question.resposta_correta === opt;
+
+                        const shouldShowExplanation = isAnswered;
+
                         return (
-                            <label key={opt} className={getOptionStyle(opt)} onClick={() => handleOptionClick(opt)}>
-                                <div className={`relative flex shrink-0 items-center justify-center w-10 h-10 rounded-xl font-bold text-base transition-all duration-300 
-                    ${isAnswered && question.resposta_correta === opt ? 'bg-green-500 text-white' :
-                                        isAnswered && selectedOption === opt && selectedOption !== question.resposta_correta ? 'bg-red-500 text-white' :
-                                            'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 group-hover:bg-slate-100'
-                                    }`}>
-                                    {opt}
-                                </div>
-                                <div className="flex-1 py-1">
-                                    <p className="text-[16px] font-medium text-slate-600 dark:text-slate-300">
-                                        {text}
-                                    </p>
-                                </div>
-                                {isAnswered && question.resposta_correta === opt && (
-                                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
-                                        <Check size={16} strokeWidth={3} />
+                            <div key={opt} className="flex flex-col gap-2">
+                                {/* Button Section */}
+                                <label className={getOptionStyle(opt)} onClick={() => handleOptionClick(opt)}>
+                                    <div className={`relative flex shrink-0 items-center justify-center w-10 h-10 rounded-xl font-bold text-base transition-all duration-300 
+                        ${isAnswered && isCorrect ? 'bg-green-500 text-white' :
+                                            isAnswered && isSelected && !isCorrect ? 'bg-red-500 text-white' :
+                                                'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 group-hover:bg-slate-100'
+                                        }`}>
+                                        {opt}
+                                    </div>
+                                    <div className="flex-1 py-1">
+                                        <p className="text-[16px] font-medium text-slate-600 dark:text-slate-300">
+                                            {text}
+                                        </p>
+                                    </div>
+                                    {isAnswered && isCorrect && (
+                                        <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0">
+                                            <Check size={16} strokeWidth={3} />
+                                        </div>
+                                    )}
+                                    {isAnswered && isSelected && !isCorrect && (
+                                        <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white shrink-0">
+                                            <X size={16} strokeWidth={3} />
+                                        </div>
+                                    )}
+                                </label>
+
+                                {/* Inline Explanation Card */}
+                                {isAnswered && shouldShowExplanation && explanation && (
+                                    <div className={`animate-in fade-in slide-in-from-top-2 duration-300 ml-2 mr-2 p-4 rounded-xl text-sm leading-relaxed text-justify border
+                                        ${isCorrect
+                                            ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-800 text-slate-700 dark:text-slate-300'
+                                            : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800 text-slate-700 dark:text-slate-300'
+                                        }`}>
+                                        <span className={`font-bold mr-1 ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                            {isCorrect ? 'Correto:' : 'Incorreto:'}
+                                        </span>
+                                        {parseBold(explanation)}
                                     </div>
                                 )}
-                                {isAnswered && selectedOption === opt && question.resposta_correta !== opt && (
-                                    <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white">
-                                        <X size={16} strokeWidth={3} />
-                                    </div>
-                                )}
-                            </label>
+                            </div>
                         );
                     })}
                 </div>
 
-                {/* Feedback / Gabarito */}
-                {isAnswered && (
+                {/* Expansão do Conhecimento (Global) */}
+                {isAnswered && question.expansao_conhecimento && (
                     <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-5">
-                            <div className="flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-300 font-bold uppercase text-sm tracking-wider">
-                                <Info size={18} />
-                                Comentário do Professor
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-5 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <Info size={100} />
                             </div>
-                            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-[15px]">
-                                {question.gabarito_comentado}
+                            <div className="flex items-center gap-2 mb-3 text-blue-700 dark:text-blue-300 font-bold uppercase text-xs tracking-widest z-10 relative">
+                                <Info size={16} />
+                                Expansão do Conhecimento
+                            </div>
+                            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-[15px] z-10 relative text-justify whitespace-pre-line">
+                                {parseBold(question.expansao_conhecimento)}
                             </p>
                         </div>
                     </div>
@@ -224,10 +286,17 @@ export default function Quiz() {
             {isAnswered && (
                 <div className="fixed bottom-0 left-0 right-0 z-40 p-5 bg-white/90 dark:bg-background-dark/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom-full">
                     <div className="w-full max-w-lg mx-auto flex gap-4">
-                        <button onClick={() => fetchRandomQuestion()} className="flex-1 h-[52px] bg-primary hover:bg-primary-dark text-white text-[16px] font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
-                            <span>Próxima Questão</span>
-                            <ArrowRight size={20} />
-                        </button>
+                        {isReviewMode ? (
+                            <button onClick={() => navigate(-1)} className="flex-1 h-[52px] bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-[16px] font-bold rounded-2xl shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+                                <ArrowLeft size={20} />
+                                <span>Voltar ao Histórico</span>
+                            </button>
+                        ) : (
+                            <button onClick={() => fetchRandomQuestion()} className="flex-1 h-[52px] bg-primary hover:bg-primary-dark text-white text-[16px] font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+                                <span>Próxima Questão</span>
+                                <ArrowRight size={20} />
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

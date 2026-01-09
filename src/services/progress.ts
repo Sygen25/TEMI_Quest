@@ -10,7 +10,7 @@ export const ProgressService = {
         return session?.user?.id || null;
     },
 
-    async saveAnswer(questionId: number, topic: string, isCorrect: boolean, timeSpentSeconds?: number) {
+    async saveAnswer(questionId: number, topic: string, isCorrect: boolean, timeSpentSeconds?: number, selectedOption?: string) {
         const userId = await this.getCurrentUserId();
         if (!userId) return;
 
@@ -22,7 +22,8 @@ export const ProgressService = {
                     question_id: questionId,
                     topico: topic,
                     is_correct: isCorrect,
-                    time_spent_seconds: timeSpentSeconds || null
+                    time_spent_seconds: timeSpentSeconds || null,
+                    selected_option: selectedOption || null
                 }, { onConflict: 'client_id,question_id' });
 
             if (error) throw error;
@@ -146,9 +147,23 @@ export const ProgressService = {
                     is_correct,
                     created_at,
                     topico,
+                    selected_option,
+
                     questao:question_id (
+                        id,
                         enunciado,
-                        resposta_correta
+                        imagem_url,
+                        alt_a,
+                        alt_b,
+                        alt_c,
+                        alt_d,
+                        resposta_correta,
+                        expansao_conhecimento,
+                        explicacao_a,
+                        explicacao_b,
+                        explicacao_c,
+                        explicacao_d,
+                        topico
                     )
                 `)
                 .eq('client_id', userId)

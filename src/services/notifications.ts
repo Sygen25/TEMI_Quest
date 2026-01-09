@@ -120,9 +120,9 @@ export const NotificationService = {
                 .from('admin_users')
                 .select('id')
                 .eq('client_id', clientId)
-                .single();
+                .limit(1);
 
-            return !!data;
+            return !!(data && data.length > 0);
         } catch {
             return false;
         }
