@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
 import { useUser } from '../contexts/UserContext';
-import { useExam } from '../contexts/ExamContext';
-import { BarChart2, User } from 'lucide-react';
+import { BarChart2, User, FileText, Home } from 'lucide-react';
 
 // Static topics data to match the design (now with dynamic progress state)
 const STATIC_TOPICS = [
@@ -30,17 +29,10 @@ const STATIC_TOPICS = [
 export default function Dashboard() {
     const navigate = useNavigate();
     const { user } = useUser();
-    const { startExam, hasActiveSession } = useExam();
     const [searchTerm, setSearchTerm] = useState('');
     const [globalProgress, setGlobalProgress] = useState(0);
     const [unreadCount, setUnreadCount] = useState(0);
 
-
-    const handleStartExam = async () => {
-        // startExam handles internally whether to start new or resume based on hasActiveSession
-        await startExam();
-        navigate('/exam');
-    };
 
     useEffect(() => {
         async function loadDashboardData() {
@@ -121,30 +113,6 @@ export default function Dashboard() {
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Tópicos de Estudo</h2>
                 </div>
 
-                {/* Exam Banner */}
-                <div
-                    onClick={handleStartExam}
-                    className="relative w-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-6 shadow-lg shadow-indigo-500/20 cursor-pointer overflow-hidden group hover:scale-[1.02] transition-transform"
-                >
-                    <div className="relative z-10 flex flex-col items-start gap-2">
-                        <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-white mb-1 border border-white/20">
-                            NOVO
-                        </div>
-                        <h2 className="text-2xl font-bold text-white leading-tight">Simulado Oficial</h2>
-                        <p className="text-indigo-100 text-sm font-medium opacity-90">90 Questões • 4 Horas • Cronometrado</p>
-
-                        <div className="mt-4 flex items-center gap-2 bg-white text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm group-hover:bg-indigo-50 transition-colors">
-                            <span>{hasActiveSession ? 'Continuar Simulado' : 'Começar Agora'}</span>
-                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                        </div>
-                    </div>
-
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
-                    <div className="absolute bottom-0 right-10 w-24 h-24 bg-indigo-500/30 rounded-full blur-xl"></div>
-                    <span className="material-symbols-outlined absolute bottom-4 right-4 text-[80px] text-white/10 rotate-12">timer</span>
-                </div>
-
                 {/* Topics Grid */}
                 <div className="grid grid-cols-2 gap-4">
                     {filteredTopics.length > 0 ? (
@@ -172,12 +140,16 @@ export default function Dashboard() {
             <nav className="fixed bottom-0 left-0 w-full bg-surface-light dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-safe z-50">
                 <div className="flex justify-around items-center h-16 px-2">
                     <button onClick={() => navigate('/')} className="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
-                        <span className="material-symbols-outlined filled text-[28px]">dashboard</span>
-                        <span className="text-[10px] font-medium">Início</span>
+                        <Home className="w-6 h-6" />
+                        <span className="text-[10px] font-bold">Início</span>
+                    </button>
+                    <button onClick={() => navigate('/simulados')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <FileText className="w-6 h-6" />
+                        <span className="text-[10px] font-medium">Simulados</span>
                     </button>
                     <button onClick={() => navigate('/analytics')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                         <BarChart2 className="w-6 h-6" />
-                        <span className="text-[10px] font-bold tracking-tight">Análise</span>
+                        <span className="text-[10px] font-medium">Análise</span>
                     </button>
                     <button onClick={() => navigate('/profile')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                         <User className="w-6 h-6" />

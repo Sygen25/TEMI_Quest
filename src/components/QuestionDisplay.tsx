@@ -1,4 +1,5 @@
 import { HelpCircle, Check, X, Info } from 'lucide-react';
+import { parseBold } from '../utils/text';
 
 interface Question {
     id: number;
@@ -32,17 +33,6 @@ export default function QuestionDisplay({
     showFeedback,
     isAnswered
 }: QuestionDisplayProps) {
-
-    const parseBold = (text: string) => {
-        if (!text) return null;
-        const parts = text.split(/(\*\*.*?\*\*)/g);
-        return parts.map((part, index) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={index} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
-            }
-            return part;
-        });
-    };
 
     const getOptionStyle = (option: string) => {
         const baseStyle = "group relative flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-300";

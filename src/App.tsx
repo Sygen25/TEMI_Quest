@@ -11,6 +11,7 @@ import Signup from './pages/Signup';
 import Analytics from './pages/Analytics';
 import Exam from './pages/Exam';
 import ExamResults from './pages/ExamResults';
+import SimuladosHub from './pages/SimuladosHub';
 import { UserProvider, useUser } from './contexts/UserContext';
 import { ExamProvider } from './contexts/ExamContext';
 
@@ -57,6 +58,7 @@ function App() {
                         <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                        <Route path="/simulados" element={<ProtectedRoute><SimuladosHub /></ProtectedRoute>} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </ExamProvider>

@@ -24,7 +24,8 @@ interface TopicInsight {
 export default function Analytics() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
+    // Explicitly define stats type based on Service return
+    const [stats, setStats] = useState<{ percentage: number; avgTimeSeconds: number } | null>(null);
     const [insights, setInsights] = useState<TopicInsight[]>([]);
 
     useEffect(() => {
@@ -35,29 +36,13 @@ export default function Analytics() {
         setLoading(true);
         try {
             const allStats = await ProgressService.getAllStats();
-            setStats(allStats);
-
-            // Group by topic for detailed insights
-            const history = allStats.history || [];
-            const topicsMap = new Map<string, { correct: number; total: number; time: number }>();
-
-            history.forEach((item: any) => {
-                const topicName = item.topico || 'Geral';
-                const existing = topicsMap.get(topicName) || { correct: 0, total: 0, time: 0 };
-                existing.total++;
-                if (item.is_correct) existing.correct++;
-                existing.time += item.time_spent_seconds || 0;
-                topicsMap.set(topicName, existing);
+            setStats({
+                percentage: allStats.percentage,
+                avgTimeSeconds: allStats.avgTimeSeconds
             });
-
-            const topicInsights: TopicInsight[] = Array.from(topicsMap.entries()).map(([title, s]) => ({
-                title,
-                percentage: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
-                total: s.total,
-                avgTime: s.total > 0 ? Math.round(s.time / s.total) : 0
-            })).sort((a, b) => a.percentage - b.percentage); // Worst first
-
-            setInsights(topicInsights);
+            // Topic insights are not available without additional DB columns
+            // For now, Analytics will show only global stats
+            setInsights([]);
         } catch (error) {
             console.error('Error loading analytics', error);
         } finally {

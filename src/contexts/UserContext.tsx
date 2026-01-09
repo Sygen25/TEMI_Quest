@@ -8,6 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 interface UserContextData {
     user: UserProfile | null;
     session: Session | null;
+    userId: string | null; // Dedicated UUID field for easy access
     authReady: boolean;
     refreshUser: () => Promise<void>;
 }
@@ -18,6 +19,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [authReady, setAuthReady] = useState(false);
+
+    // Derived ID for convenience
+    const userId = session?.user?.id ?? user?.user_id ?? null;
 
     useEffect(() => {
         let isMounted = true;
@@ -59,10 +63,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
             console.log('[UserContext] Loading profile for:', session.user.id);
             try {
                 const profile = await ProfileService.getProfile(session);
-                if (isMounted) setUser(profile);
+                if (isMounted) {
+                    setUser({
+                        ...profile,
+                        user_id: session.user.id // Ensure sync with session
+                    });
+                }
             } catch (error) {
                 console.error('[UserContext] Failed to load profile:', error);
-                // Do NOT logging out the user significantly improves resilience vs hanging profile
+                // Fallback: create a minimal profile from session if DB fails
+                if (isMounted && !user) {
+                    setUser({
+                        user_id: session.user.id,
+                        email: session.user.email || '',
+                        display_name: session.user.user_metadata?.display_name || 'Usuário',
+                        avatar_url: null,
+                        client_id: session.user.id
+                    } as UserProfile);
+                }
             }
         }
 
@@ -78,11 +96,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (currentSession) {
             console.log('[UserContext] Refreshing user profile...');
             try {
-                // Force fetch from server (could add a 'force' param to getProfile if needed, 
-                // but standard select is usually fresh enough or we can rely on supabase realtime later)
-                // For now, re-running getProfile is enough as it fetches from DB.
                 const profile = await ProfileService.getProfile(currentSession);
-                setUser(profile);
+                setUser({
+                    ...profile,
+                    user_id: currentSession.user.id
+                });
             } catch (err) {
                 console.error('[UserContext] Failed to refresh profile:', err);
             }
@@ -90,7 +108,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <UserContext.Provider value={{ user, session, authReady, refreshUser }}>
+        <UserContext.Provider value={{ user, session, userId, authReady, refreshUser }}>
             {children}
         </UserContext.Provider>
     );

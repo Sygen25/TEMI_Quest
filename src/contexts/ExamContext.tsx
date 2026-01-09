@@ -33,6 +33,7 @@ interface ExamContextType {
     startExam: (config?: { questionCount: number; durationMinutes: number }) => Promise<void>;
     pauseExam: () => Promise<void>;
     endExam: () => Promise<void>;
+    discardSession: () => Promise<void>;
     selectAnswer: (questionId: number, option: string) => void;
     toggleFlag: (questionId: number) => void;
     jumpToQuestion: (index: number) => void;
@@ -43,7 +44,7 @@ interface ExamContextType {
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export function ExamProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useUser();
+    const { user, userId } = useUser();
     const [isExamActive, setIsExamActive] = useState(false);
     const [hasActiveSession, setHasActiveSession] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -54,24 +55,23 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Define resumeExam BEFORE using it in useEffect
+    // Initial Resume/Cleanup Logic
     const resumeExam = useCallback(async () => {
         try {
             setIsLoading(true);
-            const userUUID = user?.user_id;
 
-            if (!userUUID) {
+            if (!userId) {
                 console.log('[ExamContext] No user UUID available to resume');
                 setIsLoading(false);
                 return;
             }
 
-            console.log('[ExamContext] Resuming exam for user:', userUUID);
+            console.log('[ExamContext] Checking for active session for user:', userId);
 
             const { data: sessionData, error } = await supabase
                 .from('exam_sessions')
                 .select('*')
-                .eq('user_id', userUUID)
+                .eq('user_id', userId)
                 .eq('status', 'in_progress')
                 .order('created_at', { ascending: false })
                 .limit(1)
@@ -83,13 +83,30 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            console.log('[ExamContext] Session query result:', sessionData);
-
             if (sessionData) {
-                console.log("Found active session:", sessionData.id);
+                // Check if session is stale (e.g. time limit exceeded significantly in real time)
+                // If the 'time_remaining_seconds' is likely outdated or created_at + total_time < now
+                // For now, let's rely on time_remaining_seconds stored. If it's 0, it should be finished.
+                // Or if it's been incomplete for > 24 hours, maybe abandon?
+
+                // FORCE COMPLETE if time is up locally but incorrectly active in DB
+                if (sessionData.time_remaining_seconds <= 0) {
+                    console.log("Found active but expired session. Auto-completing...");
+                    await supabase
+                        .from('exam_sessions')
+                        .update({ status: 'completed', end_time: new Date().toISOString() })
+                        .eq('id', sessionData.id);
+                    setHasActiveSession(false);
+                    setIsLoading(false);
+                    return;
+                }
+
+                console.log("Found valid active session:", sessionData.id);
                 setSessionId(sessionData.id);
                 setTimeLeft(sessionData.time_remaining_seconds);
                 setCurrentIndex(sessionData.current_question_index || 0);
+
+                let localQuestions: Question[] = [];
 
                 // Re-fetch Questions using the saved IDs order
                 if (sessionData.questions_order && Array.isArray(sessionData.questions_order)) {
@@ -100,11 +117,11 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
 
                     if (qData) {
                         // Sort questions to match the saved order
-                        const orderedQuestions = sessionData.questions_order
+                        localQuestions = sessionData.questions_order
                             .map((id: number) => qData.find((q: Question) => q.id === id))
                             .filter((q: Question | undefined) => !!q) as Question[];
 
-                        setQuestions(orderedQuestions);
+                        setQuestions(localQuestions);
                     }
                 }
 
@@ -125,6 +142,17 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
 
                     setAnswers(restoredAnswers);
                     setFlags(restoredFlags);
+
+                    // Smart Resume: If DB index is 0 (or unsafe), try to find the first unanswered question
+                    if (sessionData.current_question_index === 0 && localQuestions.length > 0 && answersData.length > 0) {
+                        const firstUnansweredIndex = localQuestions.findIndex(q => !restoredAnswers[q.id]);
+                        if (firstUnansweredIndex > 0) {
+                            console.log(`[ExamContext] Smart Resuming at index ${firstUnansweredIndex} based on answers.`);
+                            setCurrentIndex(firstUnansweredIndex);
+                        } else if (firstUnansweredIndex === -1) {
+                            setCurrentIndex(localQuestions.length - 1);
+                        }
+                    }
                 }
 
                 setIsExamActive(true);
@@ -167,6 +195,8 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
         if (!isExamActive || !sessionId) return;
 
         const syncTimer = setInterval(async () => {
+            // Only auto-save if we are still 'in_progress' to avoid race conditions with endExam
+            // But actually endExam clears isExamActive, so this is safe.
             await supabase
                 .from('exam_sessions')
                 .update({ time_remaining_seconds: timeLeft, current_question_index: currentIndex })
@@ -176,29 +206,15 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
         return () => clearInterval(syncTimer);
     }, [isExamActive, sessionId, timeLeft, currentIndex]);
 
-    // Check for active session periodically or on mount without full resume
-    const checkActiveSession = useCallback(async () => {
-        if (!user) return;
-        const { data } = await supabase
-            .from('exam_sessions')
-            .select('id')
-            .eq('user_id', user.user_id)
-            .eq('status', 'in_progress')
-            .maybeSingle();
-
-        setHasActiveSession(!!data);
-        if (data) setSessionId(data.id);
-    }, [user]);
-
-    useEffect(() => {
-        checkActiveSession();
-    }, [checkActiveSession]);
+    // Note: checkActiveSession was removed because it caused race conditions.
+    // resumeExam already handles checking for active sessions and setting hasActiveSession correctly.
 
     const startExam = useCallback(async (config = { questionCount: 90, durationMinutes: 240 }) => {
         if (!user) return;
 
-        // If we already have a session ID locally or confirmed via check, RESUME instead of start new
+        // Strict Check: Don't start if already active
         if (sessionId || hasActiveSession) {
+            console.warn("Attempted to start exam while another is active. Resuming instead.");
             await resumeExam();
             return;
         }
@@ -212,25 +228,22 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
                 .limit(config.questionCount * 2);
 
             if (error) throw error;
-            if (!data || data.length === 0) return;
+            if (!data || data.length === 0) {
+                alert('Não foi possível carregar as questões.');
+                return;
+            };
 
             // 2. Shuffle and slice
             const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, config.questionCount);
             const questionIds = shuffled.map((q: Question) => q.id);
 
             // 3. Create Session in DB
-            const userUUID = user.user_id;
-
-            if (!userUUID) {
-                console.error("User UUID not found in profile");
-                setIsLoading(false);
-                return;
-            }
+            if (!userId) throw new Error("User ID required");
 
             const { data: session, error: sessionError } = await supabase
                 .from('exam_sessions')
                 .insert({
-                    user_id: userUUID,
+                    user_id: userId,
                     total_questions: config.questionCount,
                     time_limit_seconds: config.durationMinutes * 60,
                     time_remaining_seconds: config.durationMinutes * 60,
@@ -254,6 +267,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
 
         } catch (error) {
             console.error('Error starting exam:', error);
+            alert('Erro ao iniciar simulado. Tente novamente.');
         } finally {
             setIsLoading(false);
             // Note: If success, we stay in Exam mode. 
@@ -264,15 +278,18 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
     const pauseExam = useCallback(async () => {
         if (sessionId) {
             // Save current state to database before pausing
-            await supabase
+            const { error } = await supabase
                 .from('exam_sessions')
                 .update({
                     time_remaining_seconds: timeLeft,
                     current_question_index: currentIndex
                 })
                 .eq('id', sessionId);
+
+            if (error) console.error("Error pausing exam:", error);
         }
-        // Reset local state but keep session as in_progress in DB
+
+        // Always clear local state to "pause" UI
         setIsExamActive(false);
         setQuestions([]);
         setCurrentIndex(0);
@@ -280,24 +297,91 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
         setFlags([]);
         setTimeLeft(0);
         setSessionId(null);
-        // Do NOT set hasActiveSession to false here, because it IS active in DB, just paused locally
-        // Actually, wait... pause means we navigate away, but it's still "Active" in terms of "Unfinished"
-        // So hasActiveSession remains true.
+        // Keep hasActiveSession=true because it IS active in DB
         setHasActiveSession(true);
     }, [sessionId, timeLeft, currentIndex]);
 
     const endExam = useCallback(async () => {
-        if (sessionId) {
-            await supabase
+        if (!sessionId) return;
+
+        try {
+            // Calculate score
+            let correctCount = 0;
+            const totalAnswered = Object.keys(answers).length;
+            for (const [questionId, selectedOption] of Object.entries(answers)) {
+                const question = questions.find(q => q.id === parseInt(questionId));
+                if (question && question.resposta_correta === selectedOption) {
+                    correctCount++;
+                }
+            }
+            const score = questions.length > 0 ? (correctCount / questions.length) * 100 : 0;
+
+            console.log('Completing exam session:', sessionId);
+
+            // CRITICAL: Ensure DB update succeeds
+            const { error } = await supabase
                 .from('exam_sessions')
-                .update({ status: 'completed', end_time: new Date().toISOString() })
+                .update({
+                    status: 'completed',
+                    end_time: new Date().toISOString(),
+                    score: Math.round(score * 100) / 100,
+                    correct_answers: correctCount,
+                    answered_count: totalAnswered
+                })
                 .eq('id', sessionId);
+
+            if (error) {
+                console.error("Failed to complete exam in DB:", error);
+                alert("Erro ao salvar finalização no banco de dados. Tente novamente.");
+                throw error; // Stop execution, don't clear local state
+            }
+
+            // Only clear local state if DB update was successful
+            setIsExamActive(false);
+            setHasActiveSession(false);
+            setSessionId(null);
+        } catch (error) {
+            console.error("Critical error in endExam:", error);
+            // Verify if it was network error or something else
         }
-        setIsExamActive(false);
-        setHasActiveSession(false); // Finished definitively
-        setSessionId(null);
-        // TODO: Navigate to results page
-    }, [sessionId]);
+    }, [sessionId, answers, questions]);
+
+    const discardSession = useCallback(async () => {
+        try {
+            // Hard reset for the user
+            if (sessionId) {
+                await supabase
+                    .from('exam_sessions')
+                    .update({ status: 'abandoned', end_time: new Date().toISOString() })
+                    .eq('id', sessionId);
+            }
+            if (userId) {
+                // Also check for any other in_progress sessions for this user and mark them abandoned
+                // This is a "hard reset" for the user to fix stuck states
+                await supabase
+                    .from('exam_sessions')
+                    .update({ status: 'abandoned' })
+                    .eq('user_id', userId)
+                    .eq('status', 'in_progress');
+            }
+
+            // Clear local
+            setIsExamActive(false);
+            setHasActiveSession(false);
+            setSessionId(null);
+            setQuestions([]);
+            setCurrentIndex(0);
+            setAnswers({});
+            setFlags([]);
+            setTimeLeft(0);
+
+            // Reload page or force refresh context to ensure clean state
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Error discarding session:", error);
+        }
+    }, [sessionId, user]);
 
     const selectAnswer = useCallback(async (questionId: number, option: string) => {
         setAnswers(prev => ({ ...prev, [questionId]: option }));
@@ -395,6 +479,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
             startExam,
             pauseExam,
             endExam,
+            discardSession,
             selectAnswer,
             toggleFlag,
             jumpToQuestion,

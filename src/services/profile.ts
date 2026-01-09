@@ -1,9 +1,9 @@
 import { supabase } from '../lib/supabase';
 
 export interface UserProfile {
-    id?: number;
-    client_id: string; // Kept for backward compatibility
-    user_id?: string;  // The new standard
+    id?: number; // Internal DB ID (Deprecate usage in frontend)
+    user_id: string; // UUID from Auth (Primary Identifier)
+    client_id?: string; // Legacy
     display_name: string;
     email: string;
     avatar_url: string | null;
