@@ -28,66 +28,40 @@ export default function Quiz() {
     const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
 
     async function fetchRandomQuestion() {
+        if (!topic) {
+            console.error('[Quiz] No topic in URL params');
+            setLoading(false);
+            return;
+        }
+
         setIsAnswered(false);
         setSelectedOption(null);
         setQuestion(null);
         setLoading(true);
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
+            console.log('[Quiz] Fetching questions for topic:', topic);
 
-            // Raw Fetch Bypass for Questions
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://orpdpcvwwftnncsyzbwq.supabase.co';
-            const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'sb_publishable_kISpxfZJHmxn4uzC1NeELg_thEVRNWA';
+            const { data, error } = await supabase
+                .from('Questoes')
+                .select('*')
+                .eq('topico', topic);
 
-            console.log('[Quiz] Fetching questions (RAW) for topic:', topic);
+            if (error) throw error;
 
-            // Encode topic to handle spaces and special chars safely
-            const encodedTopic = encodeURIComponent(topic || '');
-
-            // 5 Second Timeout for Network Hangs
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-            try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/Questoes?topico=eq.${encodedTopic}&select=*`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(`Fetch failed: ${response.status} ${errText}`);
-                }
-
-                const data = await response.json();
-
-                if (data && data.length > 0) {
-                    // Pick random
-                    const randomQ = data[Math.floor(Math.random() * data.length)];
-                    setQuestion(randomQ);
-                    setQuestionStartTime(Date.now()); // Reset timer when new question loads
-                } else {
-                    console.warn('[Quiz] No questions found for topic:', topic);
-                }
-            } catch (fetchErr: any) {
-                if (fetchErr.name === 'AbortError') {
-                    console.error('[Quiz] Request timed out explicitly via AbortController');
-                    throw new Error('Tempo limite excedido ao buscar questões.');
-                }
-                throw fetchErr;
+            if (data && data.length > 0) {
+                // Pick random
+                const randomQ = data[Math.floor(Math.random() * data.length)];
+                setQuestion(randomQ);
+                setQuestionStartTime(Date.now()); // Reset timer when new question loads
+            } else {
+                console.warn('[Quiz] No questions found for topic:', topic);
+                setQuestion(null); // Ensure question is null if no data
             }
 
-        } catch (err) {
-            console.error('Error fetching question:', err);
+        } catch (err: any) {
+            console.error('[Quiz] Error fetching question:', err);
+            setQuestion(null); // Ensure question is null on error
         } finally {
             setLoading(false);
         }

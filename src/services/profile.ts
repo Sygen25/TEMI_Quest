@@ -21,46 +21,21 @@ export const ProfileService = {
             }
             if (!session) throw new Error('No active session');
 
-            const userId = session.user.id;
-            const email = session.user.email || '';
-            const accessToken = session.access_token;
+            console.log('[ProfileService] Fetching profile for:', session.user.id);
 
-            console.log('[ProfileService] EXECUTING RAW FETCH for user_id:', userId);
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
 
-            // Raw Fetch Bypass - Diagnosing Library Hang
-            // Using implicit env vars if available, or the hardcoded url/key from supabase.ts logic would be better but we don't import them.
-            // We'll trust the VITE envs are present or use the ones we saw in supabase.ts
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://orpdpcvwwftnncsyzbwq.supabase.co';
-            const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'sb_publishable_kISpxfZJHmxn4uzC1NeELg_thEVRNWA';
-
-            const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles?user_id=eq.${userId}&select=*`, {
-                method: 'GET',
-                headers: {
-                    'apikey': supabaseKey,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation' // Make sure we get data back
-                    // 'Accept': 'application/vnd.pgrst.object+json' // Optional: ask for single object
+            if (error) {
+                // If specifically "PGRST116" (no rows), user doesn't exist yet
+                if (error.code === 'PGRST116') {
+                    console.warn('[ProfileService] Profile not found, creating new...');
+                    return this.createProfile(session.user.id, session.user.email || '', session.user.user_metadata?.display_name);
                 }
-            });
-
-            console.log('[ProfileService] Raw Fetch Status:', response.status);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('[ProfileService] Rest API Error:', errorText);
-                throw new Error(`Fetch failed: ${response.status} ${errorText}`);
-            }
-
-            const rows = await response.json();
-            console.log('[ProfileService] Raw Fetch Data:', rows);
-
-            let data = rows[0]; // Since we didn't ask for single object explicitly via header 'Accept: application/vnd.pgrst.object+json'
-
-            if (!data) {
-                // Profile missing, create new one
-                console.log('[ProfileService] Profile missing (empty array), creating new record...');
-                return this.createProfile(userId, email, session.user.user_metadata?.display_name);
+                throw error;
             }
 
             return {
@@ -75,51 +50,30 @@ export const ProfileService = {
     },
 
     async createProfile(userId: string, email: string, displayName?: string): Promise<UserProfile> {
-        // ✅ FIX: Ensure user_id is populated on creation
         const newProfile = {
-            client_id: userId, // Legacy support
-            user_id: userId,   // Critical for RLS
+            client_id: userId,
+            user_id: userId,
             display_name: displayName || 'Colega Médico',
             email: email,
             avatar_url: null
         };
 
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://orpdpcvwwftnncsyzbwq.supabase.co';
-        const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'sb_publishable_kISpxfZJHmxn4uzC1NeELg_thEVRNWA';
-
         try {
-            // Raw Fetch Bypass for Upsert
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token; // Use current token
+            console.log('[ProfileService] Creating profile (Standard Upsert)...');
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .upsert(newProfile, { onConflict: 'client_id' })
+                .select()
+                .single();
 
-            console.log('[ProfileService] Creating profile via RAW FETCH (Upsert)', newProfile);
-
-            const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles`, {
-                method: 'POST',
-                headers: {
-                    'apikey': supabaseKey,
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation,resolution=merge-duplicates' // Equivalent to upsert
-                },
-                body: JSON.stringify(newProfile)
-            });
-
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Profile creation failed: ${response.status} ${errText}`);
-            }
-
-            const rows = await response.json();
-            const data = rows[0];
+            if (error) throw error;
 
             return {
-                ...data, // This will include the full record
+                ...data,
                 avatar_url: data.avatar_url || DEFAULT_AVATAR
             };
         } catch (error) {
-            console.error('Error creating profile (REST):', error);
-            // Fallback object to not block auth
+            console.error('Error creating profile:', error);
             return {
                 client_id: userId,
                 user_id: userId,
