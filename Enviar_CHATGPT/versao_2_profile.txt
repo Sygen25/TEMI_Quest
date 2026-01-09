@@ -84,21 +84,41 @@ export const ProfileService = {
             avatar_url: null
         };
 
-        try {
-            const { data, error } = await supabase
-                .from('user_profiles')
-                .upsert(newProfile, { onConflict: 'client_id' })
-                .select()
-                .single();
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://orpdpcvwwftnncsyzbwq.supabase.co';
+        const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'sb_publishable_kISpxfZJHmxn4uzC1NeELg_thEVRNWA';
 
-            if (error) throw error;
+        try {
+            // Raw Fetch Bypass for Upsert
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token; // Use current token
+
+            console.log('[ProfileService] Creating profile via RAW FETCH (Upsert)', newProfile);
+
+            const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation,resolution=merge-duplicates' // Equivalent to upsert
+                },
+                body: JSON.stringify(newProfile)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Profile creation failed: ${response.status} ${errText}`);
+            }
+
+            const rows = await response.json();
+            const data = rows[0];
 
             return {
                 ...data, // This will include the full record
                 avatar_url: data.avatar_url || DEFAULT_AVATAR
             };
         } catch (error) {
-            console.error('Error creating profile:', error);
+            console.error('Error creating profile (REST):', error);
             // Fallback object to not block auth
             return {
                 client_id: userId,
