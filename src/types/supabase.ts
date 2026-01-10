@@ -119,9 +119,18 @@ export interface Database {
                     email: string
                     display_name: string
                     avatar_url: string | null
+                    ranking_visible: boolean // Added
                     client_id: string
                     created_at: string
                     updated_at: string
+                }
+            }
+            ranking_scores: {
+                Row: {
+                    user_id: string
+                    display_name: string
+                    avatar_url: string | null
+                    score: number
                 }
             }
         }

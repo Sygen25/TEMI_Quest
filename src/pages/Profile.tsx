@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
+import { ProfileService } from '../services/profile'; // Added
 import { useUser } from '../contexts/UserContext';
 import { BottomNavigation } from '../components/BottomNavigation';
 
@@ -58,7 +59,7 @@ export default function Profile() {
     const [weeklyData, setWeeklyData] = useState<{ date: string; percentage: number | null; total: number }[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
-    const { user: userProfile } = useUser();
+    const { user: userProfile, refreshUser } = useUser(); // Added refreshUser
 
     useEffect(() => {
         async function loadStats() {
@@ -200,6 +201,37 @@ export default function Profile() {
             </header>
 
             <main className="flex-1 px-6 pb-24 space-y-8">
+                {/* Settings Section */}
+                <section>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">PREFERÊNCIAS</h3>
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-soft flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[20px]">trophy</span>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-slate-900 dark:text-white">Participar do Ranking</h4>
+                                <p className="text-xs text-slate-400">Sua pontuação aparecerá para outros usuários</p>
+                            </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={userProfile?.ranking_visible || false}
+                                onChange={async (e) => {
+                                    const checked = e.target.checked;
+                                    const success = await ProfileService.updateProfile({ ranking_visible: checked });
+                                    if (success) {
+                                        refreshUser(); // Updates context
+                                    }
+                                }}
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </section>
+
                 {/* Stats Summary */}
                 <section>
                     <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">RESUMO DO PROGRESSO</h3>

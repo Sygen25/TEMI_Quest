@@ -61,7 +61,7 @@ export default function Quiz() {
 
         if (isFilterEmptyError) {
             return (
-                <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-[#f8f9fc]">
+                <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-50">
                     <QuizHeader
                         topic={displayTopic}
                         currentIndex={currentSessionIndex >= 0 ? currentSessionIndex : 0}
@@ -105,7 +105,7 @@ export default function Quiz() {
     }
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-[#f8f9fc] pb-32">
+        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-50 pb-32">
             <QuizHeader
                 topic={question.topico}
                 currentIndex={currentSessionIndex}
