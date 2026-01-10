@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, BarChart2, User, FileText, Trophy } from 'lucide-react';
+import { Home, BarChart2, User, FileText, Trophy, Sparkles } from 'lucide-react';
 
 export function BottomNavigation() {
     const navigate = useNavigate();
@@ -53,6 +53,17 @@ export function BottomNavigation() {
                 >
                     <Trophy className="w-6 h-6" />
                     <span className={`text-[10px] ${isActive('/ranking') ? 'font-bold' : 'font-medium'}`}>Ranking</span>
+                </button>
+
+                <button
+                    onClick={() => navigate('/performance')}
+                    className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors ${isActive('/performance')
+                        ? 'text-amber-500'
+                        : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+                        }`}
+                >
+                    <Sparkles className="w-6 h-6" />
+                    <span className={`text-[10px] ${isActive('/performance') ? 'font-bold' : 'font-medium'}`}>Mentor</span>
                 </button>
 
                 <button

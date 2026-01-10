@@ -28,39 +28,38 @@ export const ProgressService = {
 
         const { data: sessions, error: sessionsError } = await supabase
             .from('exam_sessions')
-            .select(`
-                id,
-                score,
-                total_questions,
-                correct_answers,
-                time_limit_seconds,
-                time_remaining_seconds,
-                created_at
-            `)
+            .select(`id, created_at`)
             .eq('user_id', targetUserId)
-            .eq('status', 'completed')
-            // .not('score', 'is', null) // Removed to include 'quiz' mode sessions which have null score
-            .order('created_at', { ascending: false });
+            .eq('status', 'completed');
 
-        if (sessionsError) {
-            console.error('Error fetching sessions:', sessionsError);
+        if (sessionsError || !sessions || sessions.length === 0) {
             return { percentage: 0, avgTimeSeconds: 0, total: 0, correct: 0, uniqueDays: 0 };
         }
 
-        let totalCorrect = 0;
-        let totalQuestions = 0;
-        let totalTimeSpent = 0;
+        const sessionIds = sessions.map(s => s.id);
         const uniqueDates = new Set<string>();
+        sessions.forEach(s => {
+            if (s.created_at) uniqueDates.add(new Date(s.created_at).toDateString());
+        });
 
-        sessions?.forEach((s: any) => {
-            totalCorrect += s.correct_answers || 0;
-            totalQuestions += s.total_questions || 0;
-            const timeLimit = s.time_limit_seconds || 0;
-            const timeRemaining = s.time_remaining_seconds || 0;
-            totalTimeSpent += (timeLimit - timeRemaining);
-            if (s.created_at) {
-                uniqueDates.add(new Date(s.created_at).toDateString());
-            }
+        // Count actual answers for these sessions
+        const { data: answers, error: answersError } = await supabase
+            .from('exam_answers')
+            .select('is_correct, time_spent_seconds')
+            .in('session_id', sessionIds)
+            .not('is_correct', 'is', null);
+
+        if (answersError || !answers) {
+            return { percentage: 0, avgTimeSeconds: 0, total: 0, correct: 0, uniqueDays: uniqueDates.size };
+        }
+
+        let totalCorrect = 0;
+        let totalQuestions = answers.length;
+        let totalTimeSpent = 0;
+
+        answers.forEach(a => {
+            if (a.is_correct) totalCorrect++;
+            totalTimeSpent += (a.time_spent_seconds || 0);
         });
 
         const globalPercentage = totalQuestions > 0
@@ -183,44 +182,54 @@ export const ProgressService = {
         if (!user) return [];
 
         // Get last 7 days
-        const days: { date: string; percentage: number | null; total: number }[] = [];
+        const days: { date: string; percentage: number | null; total: number; correct: number }[] = [];
         const today = new Date();
 
         for (let i = 6; i >= 0; i--) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            days.push({ date: d.toISOString().split('T')[0], percentage: null, total: 0 });
+            days.push({ date: d.toISOString().split('T')[0], percentage: null, total: 0, correct: 0 });
         }
 
         const startDate = days[0].date;
 
+        // Get all completed sessions for this user
         const { data: sessions } = await supabase
             .from('exam_sessions')
-            .select('created_at, score, total_questions, correct_answers')
+            .select('id')
             .eq('user_id', user.id)
-            .eq('status', 'completed')
-            .gte('created_at', startDate);
-        // .not('score', 'is', null); // Removed to include quiz sessions
+            .eq('status', 'completed');
 
-        if (sessions) {
-            sessions.forEach((s: any) => {
-                const sessionDate = new Date(s.created_at).toISOString().split('T')[0];
-                const dayEntry = days.find(d => d.date === sessionDate);
+        if (!sessions || sessions.length === 0) return days.map(d => ({ date: d.date, percentage: d.percentage, total: d.total }));
+
+        const sessionIds = sessions.map(s => s.id);
+
+        // Get actual answers from these sessions, filtered by date
+        const { data: answers } = await supabase
+            .from('exam_answers')
+            .select('answered_at, is_correct')
+            .in('session_id', sessionIds)
+            .not('is_correct', 'is', null)
+            .gte('answered_at', `${startDate}T00:00:00`);
+
+        if (answers) {
+            answers.forEach((a: any) => {
+                if (!a.answered_at) return;
+                const answerDate = new Date(a.answered_at).toISOString().split('T')[0];
+                const dayEntry = days.find(d => d.date === answerDate);
                 if (dayEntry) {
-                    dayEntry.total += s.total_questions || 0;
-                    const correctInSession = s.correct_answers || 0;
-                    const currentCorrect = dayEntry.percentage !== null
-                        ? (dayEntry.percentage / 100) * (dayEntry.total - (s.total_questions || 0))
-                        : 0;
-                    const newTotal = dayEntry.total;
-                    dayEntry.percentage = newTotal > 0
-                        ? Math.round(((currentCorrect + correctInSession) / newTotal) * 100)
-                        : null;
+                    dayEntry.total++;
+                    if (a.is_correct) dayEntry.correct++;
                 }
             });
         }
 
-        return days;
+        // Calculate percentages
+        return days.map(d => ({
+            date: d.date,
+            percentage: d.total > 0 ? Math.round((d.correct / d.total) * 100) : null,
+            total: d.total
+        }));
     },
 
     async getHistory(limit: number = 100): Promise<any[]> {
@@ -421,6 +430,51 @@ export const ProgressService = {
         } catch (err) {
             console.error('[ProgressService] Error saving note:', err);
         }
+    },
+
+    async getAIDashboardData(): Promise<any> {
+        // Get user profile for name
+        const { data: { user } } = await supabase.auth.getUser();
+        let userName = 'Candidato';
+        if (user) {
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('display_name')
+                .eq('user_id', user.id)
+                .single();
+            if (profile?.display_name) {
+                userName = profile.display_name;
+            }
+        }
+
+        const [allStats, topicInsights, weeklyStats] = await Promise.all([
+            this.getAllStats(),
+            this.getTopicInsights(),
+            this.getWeeklyStats()
+        ]);
+
+        // Filter for weak points (score < 60% or very few questions answered)
+        const weakPoints = topicInsights
+            .filter(t => t.percentage < 60 && t.total > 5)
+            .map(t => ({ topic: t.name, score: t.percentage + '%', total: t.total }));
+
+        // Filter for strong points
+        const strongPoints = topicInsights
+            .filter(t => t.percentage > 80 && t.total > 10)
+            .map(t => ({ topic: t.name, score: t.percentage + '%', total: t.total }));
+
+        return {
+            user_name: userName,
+            summary: {
+                total_questions: allStats.total,
+                global_score: allStats.percentage + '%',
+                average_time: allStats.avgTimeSeconds + 's',
+                consistency_days: allStats.uniqueDays
+            },
+            weak_areas: weakPoints,
+            strong_areas: strongPoints,
+            recent_trend: weeklyStats.map(w => ({ date: w.date, score: w.percentage }))
+        };
     },
 
     async getOrCreateDailyQuizSession(userId: string): Promise<string | null> {

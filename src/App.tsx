@@ -13,6 +13,7 @@ import Exam from './pages/Exam';
 import ExamResults from './pages/ExamResults';
 import SimuladosHub from './pages/SimuladosHub';
 import Ranking from './pages/Ranking';
+import PerformancePage from './pages/Performance';
 import { UserProvider, useUser } from './contexts/UserContext';
 import { ExamProvider } from './contexts/ExamContext';
 import { FontSizeProvider } from './contexts/FontSizeContext';
@@ -63,6 +64,7 @@ function App() {
                             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                             <Route path="/simulados" element={<ProtectedRoute><SimuladosHub /></ProtectedRoute>} />
                             <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
+                            <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
                     </FontSizeProvider>
