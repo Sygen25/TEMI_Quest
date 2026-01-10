@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
 
 interface QuizFooterProps {
     isReviewMode: boolean;
@@ -7,6 +7,8 @@ interface QuizFooterProps {
     hasPrevious?: boolean;
     onBack?: () => void;
     isAnswered?: boolean;
+    onToggleFlag?: () => void;
+    isFlagged?: boolean;
 }
 
 export function QuizFooter({
@@ -15,7 +17,9 @@ export function QuizFooter({
     onPrevious,
     hasPrevious = false,
     onBack,
-    isAnswered = false
+    isAnswered = false,
+    onToggleFlag,
+    isFlagged = false
 }: QuizFooterProps) {
     return (
         <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe z-40 transition-colors duration-300">
@@ -41,6 +45,20 @@ export function QuizFooter({
                         >
                             <ArrowLeft className="w-6 h-6" />
                             <span className="text-[10px] font-bold">Voltar</span>
+                        </button>
+
+                        <button
+                            onClick={onToggleFlag}
+                            className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors active:scale-95
+                                ${isFlagged
+                                    ? 'text-yellow-600 dark:text-yellow-500'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-500'
+                                }`}
+                        >
+                            <Flag className={`w-6 h-6 ${isFlagged ? 'fill-current' : ''}`} />
+                            <span className="text-[10px] font-bold">
+                                {isFlagged ? 'Marcada' : 'Dúvida'}
+                            </span>
                         </button>
 
                         <button

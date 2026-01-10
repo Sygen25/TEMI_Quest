@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type FontSize = 'sm' | 'base' | 'lg' | 'xl';
+type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
 
 interface FontSizeContextType {
     fontSize: FontSize;
@@ -22,6 +22,7 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
 
     const increaseFont = () => {
         setFontSize(prev => {
+            if (prev === 'xs') return 'sm';
             if (prev === 'sm') return 'base';
             if (prev === 'base') return 'lg';
             if (prev === 'lg') return 'xl';
@@ -34,6 +35,7 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
             if (prev === 'xl') return 'lg';
             if (prev === 'lg') return 'base';
             if (prev === 'base') return 'sm';
+            if (prev === 'sm') return 'xs';
             return prev;
         });
     };

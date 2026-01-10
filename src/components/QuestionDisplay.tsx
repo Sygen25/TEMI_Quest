@@ -38,6 +38,7 @@ export default function QuestionDisplay({
 
     // Map font sizes to Tailwind classes for different elements
     const textSize = {
+        xs: { body: 'text-[13px]', option: 'text-[13px]', badge: 'text-xs' },
         sm: { body: 'text-[15px]', option: 'text-[15px]', badge: 'text-sm' },
         base: { body: 'text-[18px]', option: 'text-[17px]', badge: 'text-base' },
         lg: { body: 'text-[20px]', option: 'text-[19px]', badge: 'text-lg' },
@@ -103,8 +104,11 @@ export default function QuestionDisplay({
             <div className="flex flex-col gap-4">
                 {['A', 'B', 'C', 'D'].map((opt) => {
                     const optLower = opt.toLowerCase() as 'a' | 'b' | 'c' | 'd';
-                    const text = (question as any)[`alt_${optLower}`];
-                    const explanation = (question as any)[`explicacao_${optLower}`];
+                    const altKey = `alt_${optLower}` as keyof Question;
+                    const expKey = `explicacao_${optLower}` as keyof Question;
+
+                    const text = question[altKey] as string;
+                    const explanation = question[expKey] as string | undefined;
 
                     if (!text) return null;
 

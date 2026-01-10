@@ -1,23 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUser } from './UserContext';
-
-interface Question {
-    id: number;
-    enunciado: string;
-    imagem_url: string | null;
-    alt_a: string;
-    alt_b: string;
-    alt_c: string;
-    alt_d: string;
-    resposta_correta: string;
-    topico: string;
-    explicacao_a?: string;
-    explicacao_b?: string;
-    explicacao_c?: string;
-    explicacao_d?: string;
-    expansao_conhecimento?: string;
-}
+import type { Question } from '../types/question';
 
 interface ExamContextType {
     isExamActive: boolean; // Controls if the exam UI is active/mounted
@@ -26,6 +10,7 @@ interface ExamContextType {
     currentIndex: number;
     answers: Record<number, string>; // questionId -> selectedOption
     flags: number[]; // Array of flagged question IDs
+    notes: Record<number, string>; // questionId -> note text
     timeLeft: number; // Seconds
     sessionId: string | null;
     isLoading: boolean;
@@ -38,6 +23,7 @@ interface ExamContextType {
     discardSession: () => Promise<void>;
     selectAnswer: (questionId: number, option: string) => void;
     toggleFlag: (questionId: number) => void;
+    saveNote: (questionId: number, note: string) => Promise<void>;
     jumpToQuestion: (index: number) => void;
     nextQuestion: () => void;
     prevQuestion: () => void;
@@ -57,6 +43,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [shouldHideTotal, setShouldHideTotal] = useState(false);
+    const [notes, setNotes] = useState<Record<number, string>>({});
 
     // Initial Resume/Cleanup Logic
     const resumeExam = useCallback(async () => {
@@ -523,6 +510,20 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
             discardSession,
             selectAnswer,
             toggleFlag,
+            saveNote: async (questionId: number, note: string) => {
+                setNotes(prev => ({ ...prev, [questionId]: note }));
+                if (sessionId) {
+                    await supabase.from('exam_answers').upsert({
+                        session_id: sessionId,
+                        question_id: questionId,
+                        notes: note,
+                        selected_option: answers[questionId] || '',
+                        is_correct: false,
+                        time_spent_seconds: 0
+                    }, { onConflict: 'session_id, question_id' });
+                }
+            },
+            notes,
             jumpToQuestion,
             nextQuestion,
             prevQuestion

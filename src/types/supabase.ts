@@ -70,6 +70,7 @@ export interface Database {
                     is_correct: boolean
                     time_spent_seconds: number
                     answered_at: string
+                    is_flagged: boolean // Added
                 }
                 Insert: {
                     id?: string
@@ -79,6 +80,7 @@ export interface Database {
                     is_correct: boolean
                     time_spent_seconds?: number
                     answered_at?: string
+                    is_flagged?: boolean // Added
                 }
                 Update: {
                     id?: string
@@ -88,6 +90,7 @@ export interface Database {
                     is_correct?: boolean
                     time_spent_seconds?: number
                     answered_at?: string
+                    is_flagged?: boolean // Added
                 }
             }
             Questoes: {

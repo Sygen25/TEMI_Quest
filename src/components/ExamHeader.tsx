@@ -1,4 +1,4 @@
-import { Clock, Menu, PauseCircle } from 'lucide-react';
+import { Clock, Menu, PauseCircle, StickyNote } from 'lucide-react';
 import { FontSizeControls } from './FontSizeControls';
 
 interface ExamHeaderProps {
@@ -9,6 +9,8 @@ interface ExamHeaderProps {
     onFinish: () => void;
     onOpenSidebar: () => void;
     hideTotal?: boolean;
+    hasNote?: boolean;
+    onOpenNotes?: () => void;
 }
 
 export function ExamHeader({
@@ -18,7 +20,9 @@ export function ExamHeader({
     onPause,
     onFinish,
     onOpenSidebar,
-    hideTotal = false
+    hideTotal = false,
+    hasNote = false,
+    onOpenNotes
 }: ExamHeaderProps) {
 
     const formatTime = (seconds: number) => {
@@ -48,13 +52,27 @@ export function ExamHeader({
                 </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                 <FontSizeControls />
 
+                {/* Notes Button */}
+                {onOpenNotes && (
+                    <button
+                        onClick={onOpenNotes}
+                        className={`p-2 rounded-lg transition-colors ${hasNote
+                                ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500'
+                            }`}
+                        title="Anotações"
+                    >
+                        <StickyNote size={18} />
+                    </button>
+                )}
+
                 {timeLeft !== null && (
-                    <div className="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <Clock size={16} className={`${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-slate-400'}`} />
-                        <span className={`font-mono text-sm font-bold ${timeLeft < 300 ? 'text-red-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Clock size={14} className={`sm:w-4 sm:h-4 ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-slate-400'}`} />
+                        <span className={`font-mono text-xs sm:text-sm font-bold ${timeLeft < 300 ? 'text-red-600' : 'text-slate-700 dark:text-slate-300'}`}>
                             {formatTime(timeLeft)}
                         </span>
                     </div>

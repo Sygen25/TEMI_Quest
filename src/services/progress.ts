@@ -340,6 +340,89 @@ export const ProgressService = {
         }
     },
 
+    async toggleFlag(questionId: number, isFlagged: boolean): Promise<void> {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+            const sessionId = await this.getOrCreateDailyQuizSession(user.id);
+            if (!sessionId) return;
+
+            // Check if answer already exists
+            const { data: existingAnswer } = await supabase
+                .from('exam_answers')
+                .select('id, selected_option, is_correct, time_spent_seconds')
+                .eq('session_id', sessionId)
+                .eq('question_id', questionId)
+                .maybeSingle();
+
+            if (existingAnswer) {
+                // Update existing
+                await supabase
+                    .from('exam_answers')
+                    .update({ is_flagged: isFlagged })
+                    .eq('id', existingAnswer.id);
+            } else {
+                // Insert new (Flag only, no answer yet)
+                // Note: assuming selected_option is nullable or defaults are handled. 
+                // Using empty string/false for required fields if necessary.
+                await supabase
+                    .from('exam_answers')
+                    .insert({
+                        session_id: sessionId,
+                        question_id: questionId,
+                        is_flagged: isFlagged,
+                        selected_option: '', // Placeholder if required
+                        is_correct: false,    // Placeholder
+                        time_spent_seconds: 0
+                    });
+            }
+        } catch (err) {
+            console.error('[ProgressService] Error toggling flag:', err);
+        }
+    },
+
+    async saveNote(questionId: number, notes: string): Promise<void> {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+            const sessionId = await this.getOrCreateDailyQuizSession(user.id);
+            if (!sessionId) return;
+
+            // Check if answer already exists
+            const { data: existingAnswer } = await supabase
+                .from('exam_answers')
+                .select('id')
+                .eq('session_id', sessionId)
+                .eq('question_id', questionId)
+                .maybeSingle();
+
+            if (existingAnswer) {
+                // Update existing
+                await supabase
+                    .from('exam_answers')
+                    .update({ notes })
+                    .eq('id', existingAnswer.id);
+            } else {
+                // Insert new (Note only, no answer yet)
+                await supabase
+                    .from('exam_answers')
+                    .insert({
+                        session_id: sessionId,
+                        question_id: questionId,
+                        notes,
+                        selected_option: '',
+                        is_correct: false,
+                        time_spent_seconds: 0
+                    });
+            }
+            console.log('[ProgressService] Note saved successfully');
+        } catch (err) {
+            console.error('[ProgressService] Error saving note:', err);
+        }
+    },
+
     async getOrCreateDailyQuizSession(userId: string): Promise<string | null> {
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 

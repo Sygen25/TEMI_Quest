@@ -85,7 +85,23 @@ export default function ExamResults() {
         );
     }
 
-    if (!result) return null;
+    if (!result) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white">
+                <div className="w-20 h-20 mb-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <span className="text-4xl">📊</span>
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Ops! Resultados indisponíveis</h2>
+                <p className="mb-6 text-slate-500 max-w-sm">Não foi possível carregar os dados desta sessão. Ela pode ter sido interrompida ou os dados ainda não foram processados.</p>
+                <button
+                    onClick={() => navigate('/')}
+                    className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl transition-colors shadow-lg"
+                >
+                    Voltar ao Dashboard
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20 fade-in">

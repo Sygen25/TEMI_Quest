@@ -5,6 +5,7 @@ import QuestionDisplay from '../components/QuestionDisplay';
 import ExamSidebar from '../components/ExamSidebar';
 import { ExamHeader } from '../components/ExamHeader';
 import { ExamFooter } from '../components/ExamFooter';
+import { NotesModal } from '../components/NotesModal';
 
 export default function Exam() {
     const navigate = useNavigate();
@@ -14,9 +15,11 @@ export default function Exam() {
         currentIndex,
         answers,
         flags,
+        notes,
         timeLeft,
         selectAnswer,
         toggleFlag,
+        saveNote,
         nextQuestion,
         prevQuestion,
         pauseExam,
@@ -28,6 +31,7 @@ export default function Exam() {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isNotesOpen, setIsNotesOpen] = useState(false);
 
     // Redirect if no active exam AND not loading AND not submitting
     useEffect(() => {
@@ -51,6 +55,7 @@ export default function Exam() {
 
     const selectedOption = answers[currentQuestion.id] || null;
     const isFlagged = flags.includes(currentQuestion.id);
+    const currentNote = notes[currentQuestion.id] || '';
 
     const handlePause = async () => {
         await pauseExam();
@@ -76,6 +81,8 @@ export default function Exam() {
                 onFinish={handleFinish}
                 onOpenSidebar={() => setIsSidebarOpen(true)}
                 hideTotal={shouldHideTotal}
+                hasNote={!!currentNote}
+                onOpenNotes={() => setIsNotesOpen(true)}
             />
 
             {/* Sidebar Overlay */}
@@ -102,10 +109,19 @@ export default function Exam() {
                 onPrev={prevQuestion}
                 onNext={nextQuestion}
                 onToggleFlag={() => toggleFlag(currentQuestion.id)}
+                onFinish={handleFinish}
                 isFlagged={isFlagged}
                 isFirst={currentIndex === 0}
                 isLast={currentIndex === questions.length - 1}
             />
+
+            <NotesModal
+                isOpen={isNotesOpen}
+                onClose={() => setIsNotesOpen(false)}
+                initialNote={currentNote}
+                onSave={(note) => saveNote(currentQuestion.id, note)}
+            />
         </div>
     );
 }
+

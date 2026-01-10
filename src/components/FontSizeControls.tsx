@@ -8,7 +8,7 @@ export function FontSizeControls() {
         <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700 shadow-sm">
             <button
                 onClick={decreaseFont}
-                disabled={fontSize === 'sm'}
+                disabled={fontSize === 'xs'}
                 className="px-2.5 py-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-colors flex items-end"
                 title="Diminuir fonte"
             >
