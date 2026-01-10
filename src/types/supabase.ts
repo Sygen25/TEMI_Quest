@@ -25,6 +25,7 @@ export interface Database {
                     created_at: string
                     updated_at: string
                     end_time: string | null
+                    mode: 'exam' | 'quiz'
                 }
                 Insert: {
                     id?: string
@@ -41,6 +42,7 @@ export interface Database {
                     created_at?: string
                     updated_at?: string
                     end_time?: string | null
+                    mode?: 'exam' | 'quiz'
                 }
                 Update: {
                     id?: string

@@ -30,6 +30,8 @@ interface ExamContextType {
     sessionId: string | null;
     isLoading: boolean;
 
+    shouldHideTotal: boolean;
+
     startExam: (config?: { questionCount: number; durationMinutes: number }) => Promise<void>;
     pauseExam: () => Promise<void>;
     endExam: () => Promise<void>;
@@ -54,6 +56,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
     const [timeLeft, setTimeLeft] = useState(0);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [shouldHideTotal, setShouldHideTotal] = useState(false);
 
     // Initial Resume/Cleanup Logic
     const resumeExam = useCallback(async () => {
@@ -221,11 +224,17 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
 
         try {
             setIsLoading(true);
+            setShouldHideTotal(false); // Default to false for new exam
+
             // 1. Fetch random questions
+            // Fetch MORE than requested to support "Max available" logic without truncation first if possible
+            // But if we want to know if we hit the limit, we just fetch generally.
+            // Let's just limit by a safe generic max or the requested count.
+            // Reverting to fetch all or large pool to shuffle is expensive but fine for this scale.
             const { data, error } = await supabase
                 .from('Questoes')
                 .select('*')
-                .limit(config.questionCount * 2);
+                .limit(1000); // Reasonable cap for now
 
             if (error) throw error;
             if (!data || data.length === 0) {
@@ -233,9 +242,29 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
                 return;
             };
 
-            // 2. Shuffle and slice
-            const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, config.questionCount);
-            const questionIds = shuffled.map((q: Question) => q.id);
+            // Check if we have enough questions
+            const availableCount = data.length;
+            const targetCount = config.questionCount;
+            let finalQuestions = data;
+
+            // Logic: If user asked for more than we have -> Use all available & Hide Total
+            if (targetCount > availableCount) {
+                console.log(`[ExamContext] Requested ${targetCount} questions, but only found ${availableCount}. Using all available and hiding total.`);
+                setShouldHideTotal(true);
+                // finalQuestions is already all data
+            } else {
+                setShouldHideTotal(false);
+                // Shuffle and slice to target
+                finalQuestions = data.sort(() => 0.5 - Math.random()).slice(0, targetCount);
+            }
+
+            // Double check shuffling for the "all available" case too
+            if (targetCount > availableCount) {
+                finalQuestions = finalQuestions.sort(() => 0.5 - Math.random());
+            }
+
+            const questionIds = finalQuestions.map((q: Question) => q.id);
+            const actualTotal = finalQuestions.length;
 
             // 3. Create Session in DB
             if (!userId) throw new Error("User ID required");
@@ -244,7 +273,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
                 .from('exam_sessions')
                 .insert({
                     user_id: userId,
-                    total_questions: config.questionCount,
+                    total_questions: actualTotal,
                     time_limit_seconds: config.durationMinutes * 60,
                     time_remaining_seconds: config.durationMinutes * 60,
                     status: 'in_progress',
@@ -257,7 +286,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
 
             // 4. Set Local State
             setSessionId(session.id);
-            setQuestions(shuffled);
+            setQuestions(finalQuestions);
             setCurrentIndex(0);
             setAnswers({});
             setFlags([]);
@@ -337,7 +366,8 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
                     end_time: new Date().toISOString(),
                     score: Math.round(score * 100) / 100,
                     correct_answers: correctCount,
-                    answered_count: totalAnswered
+                    answered_count: totalAnswered,
+                    time_remaining_seconds: timeLeft
                 })
                 .eq('id', sessionId);
 
@@ -486,6 +516,7 @@ export function ExamProvider({ children }: { children: React.ReactNode }) {
             timeLeft,
             sessionId,
             isLoading,
+            shouldHideTotal,
             startExam,
             pauseExam,
             endExam,

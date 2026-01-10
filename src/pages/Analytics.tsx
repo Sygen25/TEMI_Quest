@@ -5,14 +5,11 @@ import {
     Target,
     Clock,
     AlertTriangle,
-    Home,
-    GraduationCap,
     ArrowUpRight,
-    Search,
-    BarChart2,
-    User
+    Search
 } from 'lucide-react';
 import { ProgressService } from '../services/progress';
+import { BottomNavigation } from '../components/BottomNavigation';
 
 interface TopicInsight {
     title: string;
@@ -50,7 +47,7 @@ export default function Analytics() {
                 title: t.name,
                 percentage: t.percentage,
                 total: t.total,
-                avgTime: 0 // Not tracked yet
+                avgTime: t.avgTimeSeconds
             }));
 
             setInsights(topicInsights);
@@ -164,29 +161,7 @@ export default function Analytics() {
             </main>
 
             {/* Navigation Bottom */}
-            <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-slate-800/50 pb-safe z-50 rounded-t-3xl shadow-soft">
-                <div className="flex justify-between items-center h-20 px-6 relative">
-                    <button onClick={() => navigate('/')} className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600">
-                        <Home className="w-6 h-6" />
-                        <span className="text-[10px] font-bold tracking-tight">Início</span>
-                    </button>
-                    <button className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500">
-                        <GraduationCap className="w-6 h-6" />
-                        <span className="text-[10px] font-bold tracking-tight">Estudo</span>
-                    </button>
-
-                    <div className="w-14 h-14" /> {/* Spacer for Floating Action Button if added later */}
-
-                    <button onClick={() => navigate('/analytics')} className="flex flex-1 flex-col items-center justify-center gap-1 text-teal-500">
-                        <BarChart2 className="w-6 h-6" />
-                        <span className="text-[10px] font-bold tracking-tight">Análise</span>
-                    </button>
-                    <button onClick={() => navigate('/profile')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <User className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Perfil</span>
-                    </button>
-                </div>
-            </nav>
+            <BottomNavigation />
         </div>
     );
 }

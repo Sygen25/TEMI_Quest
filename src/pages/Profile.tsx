@@ -8,52 +8,32 @@ import {
     CheckCircle2,
     Timer,
     Flame,
-    TrendingUp,
-    Brain,
-    HeartPulse,
-    Home,
-    GraduationCap,
-    BarChart2,
-    User,
-    Wind,
-    Droplets,
-    Baby,
-    Heart,
-    Pill,
-    Activity,
-    Utensils,
-    Droplet,
-    Microscope,
-    Biohazard,
-    Zap,
-    Scale,
-    FileText,
-    Boxes,
-    Stethoscope as TraumaIcon
+    TrendingUp
 } from 'lucide-react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
 import { useUser } from '../contexts/UserContext';
+import { BottomNavigation } from '../components/BottomNavigation';
 
 // Official Clinical Topics (TEMI 2026)
 const PROFILE_TOPICS = [
-    { title: 'Hemodinâmica', icon: HeartPulse, color: 'red' },
-    { title: 'Ventilação mecânica', icon: Wind, color: 'blue' },
-    { title: 'Monitorização multimodal', icon: Zap, color: 'amber' },
-    { title: 'Cardiologia', icon: Activity, color: 'red' },
-    { title: 'Nutrição', icon: Utensils, color: 'green' },
-    { title: 'Gastroenterologia', icon: Droplet, color: 'orange' },
-    { title: 'Nefrologia', icon: Droplets, color: 'blue' },
-    { title: 'Neurointensivismo', icon: Brain, color: 'purple' },
-    { title: 'Endocrinologia', icon: Pill, color: 'pink' },
-    { title: 'Cirurgia e Trauma', icon: TraumaIcon, color: 'rose' },
-    { title: 'Sepse e infecções', icon: Biohazard, color: 'emerald' },
-    { title: 'Oncologia e hematologia', icon: Microscope, color: 'red' },
-    { title: 'Obstetrícia', icon: Baby, color: 'indigo' },
-    { title: 'Gestão em UTI', icon: Scale, color: 'gray' },
-    { title: 'Cuidados paliativos', icon: Heart, color: 'rose' },
-    { title: 'MBE', icon: FileText, color: 'blue' },
-    { title: 'Miscelânea', icon: Boxes, color: 'slate' },
+    { title: 'Hemodinâmica', icon: 'favorite' },
+    { title: 'Ventilação mecânica', icon: 'air' },
+    { title: 'Monitorização multimodal', icon: 'monitoring' },
+    { title: 'Cardiologia', icon: 'ecg' },
+    { title: 'Nutrição', icon: 'restaurant' },
+    { title: 'Gastroenterologia', icon: 'medication' },
+    { title: 'Nefrologia', icon: 'water_drop' },
+    { title: 'Neurointensivismo', icon: 'psychology' },
+    { title: 'Endocrinologia', icon: 'health_and_safety' },
+    { title: 'Cirurgia e Trauma', icon: 'medical_services' },
+    { title: 'Sepse e infecções', icon: 'coronavirus' },
+    { title: 'Oncologia e hematologia', icon: 'biotech' },
+    { title: 'Obstetrícia', icon: 'child_care' },
+    { title: 'Gestão em UTI', icon: 'analytics' },
+    { title: 'Cuidados paliativos', icon: 'volunteer_activism' },
+    { title: 'MBE', icon: 'library_books' },
+    { title: 'Miscelânea', icon: 'category' },
 ];
 
 interface GlobalStats {
@@ -82,26 +62,28 @@ export default function Profile() {
 
     useEffect(() => {
         async function loadStats() {
-            // Global stats
-            const global = await ProgressService.getAllStats();
+            // Run all requests in parallel for faster loading
+            const [global, insights, weekly, admin] = await Promise.all([
+                ProgressService.getAllStats(),
+                ProgressService.getTopicInsights(),
+                ProgressService.getWeeklyStats(),
+                NotificationService.isAdmin()
+            ]);
+
             setGlobalStats(global);
 
-            // Per-topic stats
-            const stats: TopicStat[] = [];
-            for (const topic of PROFILE_TOPICS) {
-                const s = await ProgressService.getTopicStats(topic.title);
-                stats.push({ title: topic.title, total: s.total, percentage: s.percentage });
-            }
+            const stats: TopicStat[] = PROFILE_TOPICS.map(topic => {
+                const insight = insights.find(i => i.name === topic.title);
+                return {
+                    title: topic.title,
+                    total: insight?.total || 0,
+                    percentage: insight?.percentage || 0
+                };
+            });
             setTopicStats(stats);
 
-            // Weekly chart data
-            const weekly = await ProgressService.getWeeklyStats();
             setWeeklyData(weekly);
-
-            // Check admin status
-            const admin = await NotificationService.isAdmin();
             setIsAdmin(admin);
-
             setLoading(false);
         }
         loadStats();
@@ -233,7 +215,6 @@ export default function Profile() {
 
                         {/* Stat 2 */}
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-soft relative">
-                            <span className="absolute top-4 right-4 bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-md">+2%</span>
                             <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mb-3">
                                 <CheckCircle2 className="w-5 h-5" />
                             </div>
@@ -362,38 +343,24 @@ export default function Profile() {
                         ) : (
                             topicStats.map((stat, index) => {
                                 const topicConfig = PROFILE_TOPICS[index];
-                                const Icon = topicConfig?.icon || Brain;
-                                const colorClasses = {
-                                    purple: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', bar: 'bg-purple-500' },
-                                    red: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', bar: 'bg-red-500' },
-                                    amber: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', bar: 'bg-amber-500' },
-                                    blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', bar: 'bg-blue-500' },
-                                    gray: { bg: 'bg-slate-100 dark:bg-slate-900/30', text: 'text-slate-600 dark:text-slate-400', bar: 'bg-slate-500' },
-                                    teal: { bg: 'bg-teal-100 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', bar: 'bg-teal-500' },
-                                    pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400', bar: 'bg-pink-500' },
-                                    indigo: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', bar: 'bg-indigo-500' },
-                                    rose: { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600 dark:text-rose-400', bar: 'bg-rose-500' },
-                                    orange: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', bar: 'bg-orange-500' },
-                                    green: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', bar: 'bg-green-500' },
-                                    emerald: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', bar: 'bg-emerald-500' },
-                                    slate: { bg: 'bg-slate-100 dark:bg-slate-900/30', text: 'text-slate-600 dark:text-slate-400', bar: 'bg-slate-500' },
-                                };
-                                const colors = colorClasses[topicConfig?.color as keyof typeof colorClasses] || colorClasses.purple;
+                                const iconName = topicConfig?.icon || 'brain';
 
                                 return (
-                                    <div key={stat.title} className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-soft">
+                                    <div key={stat.title} className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-soft border border-transparent hover:border-primary/10 transition-all">
                                         <div className="flex items-center gap-4 mb-3">
-                                            <div className={`w-10 h-10 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center`}>
-                                                <Icon className="w-5 h-5" />
+                                            <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-[20px]">{iconName}</span>
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="font-bold text-slate-900 dark:text-white">{stat.title}</h4>
-                                                <p className="text-xs text-slate-400">Taxa de acertos</p>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-100">{stat.title}</h4>
+                                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Taxa de acertos</p>
                                             </div>
-                                            <span className="font-bold text-slate-900 dark:text-white">{stat.percentage}%</span>
+                                            <div className="text-right">
+                                                <span className="font-bold text-slate-900 dark:text-white text-lg">{stat.percentage}%</span>
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                            <div className={`h-full ${colors.bar} rounded-full transition-all`} style={{ width: `${stat.percentage}%` }}></div>
+                                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${stat.percentage}%` }}></div>
                                         </div>
                                     </div>
                                 );
@@ -403,28 +370,8 @@ export default function Profile() {
                 </section>
             </main>
 
-            {/* Bottom Navigation with FAB */}
-            <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-800/50 pb-safe z-50 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.03)]">
-                <div className="flex justify-between items-center h-20 px-6 relative">
-                    <button onClick={() => navigate('/')} className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <Home className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Início</span>
-                    </button>
-                    <button className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <GraduationCap className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Estudo</span>
-                    </button>
-
-                    <button className="flex flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors ml-8">
-                        <BarChart2 className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Ranking</span>
-                    </button>
-                    <button className="flex flex-col items-center justify-center gap-1 text-teal-500">
-                        <User className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Perfil</span>
-                    </button>
-                </div>
-            </nav>
+            {/* Bottom Navigation */}
+            <BottomNavigation />
         </div>
     );
 }

@@ -14,6 +14,7 @@ import ExamResults from './pages/ExamResults';
 import SimuladosHub from './pages/SimuladosHub';
 import { UserProvider, useUser } from './contexts/UserContext';
 import { ExamProvider } from './contexts/ExamContext';
+import { FontSizeProvider } from './contexts/FontSizeContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { session, authReady, user } = useUser();
@@ -44,23 +45,25 @@ function App() {
         <BrowserRouter>
             <UserProvider>
                 <ExamProvider>
-                    <Routes>
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
+                    <FontSizeProvider>
+                        <Routes>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<Signup />} />
 
-                        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                        <Route path="/quiz/:topic" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
-                        <Route path="/exam" element={<ProtectedRoute><Exam /></ProtectedRoute>} />
-                        <Route path="/exam/results" element={<ProtectedRoute><ExamResults /></ProtectedRoute>} />
-                        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-                        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-                        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                        <Route path="/simulados" element={<ProtectedRoute><SimuladosHub /></ProtectedRoute>} />
-                        <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
+                            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                            <Route path="/quiz/:topic" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+                            <Route path="/exam" element={<ProtectedRoute><Exam /></ProtectedRoute>} />
+                            <Route path="/exam/results" element={<ProtectedRoute><ExamResults /></ProtectedRoute>} />
+                            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                            <Route path="/simulados" element={<ProtectedRoute><SimuladosHub /></ProtectedRoute>} />
+                            <Route path="*" element={<Navigate to="/" />} />
+                        </Routes>
+                    </FontSizeProvider>
                 </ExamProvider>
             </UserProvider>
         </BrowserRouter>

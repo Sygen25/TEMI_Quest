@@ -22,7 +22,8 @@ export default function Exam() {
         pauseExam,
         endExam,
         isLoading,
-        sessionId
+        sessionId,
+        shouldHideTotal
     } = useExam();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -74,6 +75,7 @@ export default function Exam() {
                 onPause={handlePause}
                 onFinish={handleFinish}
                 onOpenSidebar={() => setIsSidebarOpen(true)}
+                hideTotal={shouldHideTotal}
             />
 
             {/* Sidebar Overlay */}
@@ -86,7 +88,7 @@ export default function Exam() {
             )}
 
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-3xl mx-auto p-4 md:p-6 transition-all duration-300 ease-in-out">
+            <main className="flex-1 w-full max-w-3xl mx-auto p-4 md:p-6 pt-20 md:pt-24 transition-all duration-300 ease-in-out">
                 <QuestionDisplay
                     question={currentQuestion}
                     selectedOption={selectedOption}

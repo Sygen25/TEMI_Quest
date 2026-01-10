@@ -99,7 +99,16 @@ export function processExamResults(
     const timeSpentSeconds = session.time_limit_seconds - session.time_remaining_seconds;
     const hours = Math.floor(timeSpentSeconds / 3600);
     const minutes = Math.floor((timeSpentSeconds % 3600) / 60);
-    const timeSpentString = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} minutos`;
+    const seconds = Math.floor(timeSpentSeconds % 60);
+
+    let timeSpentString = '';
+    if (hours > 0) {
+        timeSpentString = `${hours}h ${minutes}min`;
+    } else if (minutes > 0) {
+        timeSpentString = `${minutes} min`;
+    } else {
+        timeSpentString = `${seconds} seg`;
+    }
 
     return {
         totalQuestions: questionIds.length,

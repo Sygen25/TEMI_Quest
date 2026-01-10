@@ -13,6 +13,7 @@ interface TopicStat {
     correct: number;
     total: number;
     percentage: number;
+    avgTimeSeconds: number;
 }
 
 export const ProgressService = {
@@ -38,7 +39,7 @@ export const ProgressService = {
             `)
             .eq('user_id', targetUserId)
             .eq('status', 'completed')
-            .not('score', 'is', null)
+            // .not('score', 'is', null) // Removed to include 'quiz' mode sessions which have null score
             .order('created_at', { ascending: false });
 
         if (sessionsError) {
@@ -103,6 +104,7 @@ export const ProgressService = {
             .select(`
                 is_correct,
                 question_id,
+                time_spent_seconds,
                 Questoes (
                     topico
                 )
@@ -115,12 +117,13 @@ export const ProgressService = {
             return [];
         }
 
-        const topicsMap = new Map<string, { correct: number; total: number }>();
+        const topicsMap = new Map<string, { correct: number; total: number; totalTime: number }>();
 
         answers.forEach((a: any) => {
             const topicName = a.Questoes?.topico || 'Geral';
-            const existing = topicsMap.get(topicName) || { correct: 0, total: 0 };
+            const existing = topicsMap.get(topicName) || { correct: 0, total: 0, totalTime: 0 };
             existing.total++;
+            existing.totalTime += (a.time_spent_seconds || 0);
             if (a.is_correct) existing.correct++;
             topicsMap.set(topicName, existing);
         });
@@ -130,7 +133,8 @@ export const ProgressService = {
                 name,
                 correct: data.correct,
                 total: data.total,
-                percentage: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0
+                percentage: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
+                avgTimeSeconds: data.total > 0 ? Math.round(data.totalTime / data.total) : 0
             }))
             .sort((a, b) => a.percentage - b.percentage);
 
@@ -195,8 +199,8 @@ export const ProgressService = {
             .select('created_at, score, total_questions, correct_answers')
             .eq('user_id', user.id)
             .eq('status', 'completed')
-            .gte('created_at', startDate)
-            .not('score', 'is', null);
+            .gte('created_at', startDate);
+        // .not('score', 'is', null); // Removed to include quiz sessions
 
         if (sessions) {
             sessions.forEach((s: any) => {
@@ -270,7 +274,6 @@ export const ProgressService = {
 
     async saveAnswer(
         questionId: number,
-        topico: string,
         isCorrect: boolean,
         timeSpentSeconds: number,
         selectedOption: string
@@ -278,15 +281,106 @@ export const ProgressService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // For standalone quiz mode (not exam), we don't have a session
-        // We could create ad-hoc sessions or just log silently
-        // For now, this is a no-op since the main exam flow handles saving
-        console.log('[ProgressService] saveAnswer called for standalone quiz:', {
-            questionId,
-            topico,
-            isCorrect,
-            timeSpentSeconds,
-            selectedOption
-        });
+        try {
+            const sessionId = await this.getOrCreateDailyQuizSession(user.id);
+            if (!sessionId) return;
+
+            // Check if answer already exists
+            const { data: existingAnswer } = await supabase
+                .from('exam_answers')
+                .select('id, is_correct')
+                .eq('session_id', sessionId)
+                .eq('question_id', questionId)
+                .maybeSingle();
+
+            const { data: session } = await supabase
+                .from('exam_sessions')
+                .select('total_questions, correct_answers')
+                .eq('id', sessionId)
+                .single();
+
+            if (!session) return;
+
+            let newTotal = session.total_questions || 0;
+            let newCorrect = session.correct_answers || 0;
+
+            if (existingAnswer) {
+                if (!existingAnswer.is_correct && isCorrect) {
+                    newCorrect++;
+                } else if (existingAnswer.is_correct && !isCorrect) {
+                    newCorrect--;
+                }
+            } else {
+                newTotal++;
+                if (isCorrect) newCorrect++;
+            }
+
+            // Save/Update answer
+            await supabase.from('exam_answers').upsert({
+                session_id: sessionId,
+                question_id: questionId,
+                selected_option: selectedOption,
+                is_correct: isCorrect,
+                time_spent_seconds: timeSpentSeconds,
+                answered_at: new Date().toISOString()
+            }, {
+                onConflict: 'session_id, question_id'
+            });
+
+            // Update session stats
+            await supabase.from('exam_sessions').update({
+                total_questions: newTotal,
+                correct_answers: newCorrect,
+                updated_at: new Date().toISOString()
+            }).eq('id', sessionId);
+
+            console.log('[ProgressService] Answer saved successfully', { isCorrect, sessionId, updated: !!existingAnswer });
+        } catch (err) {
+            console.error('[ProgressService] Unexpected error in saveAnswer:', err);
+        }
+    },
+
+    async getOrCreateDailyQuizSession(userId: string): Promise<string | null> {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Find existing session for today with mode='quiz'
+        const query = (supabase as any)
+            .from('exam_sessions')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('mode', 'quiz')
+            .gte('created_at', `${today}T00:00:00`)
+            .lt('created_at', `${today}T23:59:59`)
+            .limit(1);
+
+        const { data: sessions } = await query;
+
+        if (sessions && sessions.length > 0) {
+            return sessions[0].id;
+        }
+
+        // Create new session
+        const { data: newSession, error } = await supabase
+            .from('exam_sessions')
+            .insert({
+                user_id: userId,
+                status: 'completed', // Completed so it doesn't show up as "Resumable"
+                mode: 'quiz',
+                total_questions: 0,
+                correct_answers: 0,
+                score: null,
+                questions_order: [],
+                time_limit_seconds: 0,
+                time_remaining_seconds: 0
+            })
+            .select('id')
+            .single();
+
+        if (error) {
+            console.error('[ProgressService] Error creating daily session:', error);
+            return null;
+        }
+
+        return newSession.id;
     }
 };

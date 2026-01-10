@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react';
 import { ProgressService } from '../services/progress';
 import { NotificationService } from '../services/notifications';
 import { useUser } from '../contexts/UserContext';
-import { BarChart2, User, FileText, Home } from 'lucide-react';
+import { useExam } from '../contexts/ExamContext';
+import { BottomNavigation } from '../components/BottomNavigation';
+import { Target, ArrowRight, Play } from 'lucide-react';
 
 // Static topics data to match the design (now with dynamic progress state)
 const STATIC_TOPICS = [
@@ -29,6 +31,7 @@ const STATIC_TOPICS = [
 export default function Dashboard() {
     const navigate = useNavigate();
     const { user } = useUser();
+    const { hasActiveSession } = useExam();
     const [searchTerm, setSearchTerm] = useState('');
     const [globalProgress, setGlobalProgress] = useState(0);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -85,7 +88,7 @@ export default function Dashboard() {
                 {/* Progress Bar */}
                 <div className="flex flex-col gap-2 mb-4">
                     <div className="flex justify-between items-end">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Progresso Geral</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Índice de Assertividade</span>
                         <span className="text-sm font-bold text-primary">{globalProgress}%</span>
                     </div>
                     <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -113,6 +116,29 @@ export default function Dashboard() {
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Tópicos de Estudo</h2>
                 </div>
 
+                {/* Active Session Resume Banner */}
+                {hasActiveSession && (
+                    <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-3xl p-6 relative overflow-hidden group cursor-pointer active:scale-[0.99] transition-all"
+                        onClick={() => navigate('/simulados')}>
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <Target className="w-20 h-20 -mt-6 -mr-6 text-primary" />
+                        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/30">
+                                <Play className="w-6 h-6 fill-current" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-black text-slate-900 dark:text-white">Continuar Simulado</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Você tem uma sessão em andamento. Não perca seu progresso!</p>
+                                <div className="mt-3 inline-flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest">
+                                    Retomar Agora
+                                    <ArrowRight className="w-4 h-4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Topics Grid */}
                 <div className="grid grid-cols-2 gap-4">
                     {filteredTopics.length > 0 ? (
@@ -137,26 +163,7 @@ export default function Dashboard() {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 w-full bg-surface-light dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-safe z-50">
-                <div className="flex justify-around items-center h-16 px-2">
-                    <button onClick={() => navigate('/')} className="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
-                        <Home className="w-6 h-6" />
-                        <span className="text-[10px] font-bold">Início</span>
-                    </button>
-                    <button onClick={() => navigate('/simulados')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <FileText className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Simulados</span>
-                    </button>
-                    <button onClick={() => navigate('/analytics')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <BarChart2 className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Análise</span>
-                    </button>
-                    <button onClick={() => navigate('/profile')} className="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <User className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Perfil</span>
-                    </button>
-                </div>
-            </nav>
+            <BottomNavigation />
         </div>
     );
 }
