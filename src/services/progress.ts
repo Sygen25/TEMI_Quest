@@ -477,6 +477,72 @@ export const ProgressService = {
         };
     },
 
+    async getYearlyActivity(userId?: string): Promise<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }[]> {
+        let targetUserId = userId;
+
+        if (!targetUserId) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+            targetUserId = user.id;
+        }
+
+        const today = new Date();
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+        // Get all completed sessions in the last year
+        const { data: sessions } = await supabase
+            .from('exam_sessions')
+            .select('id')
+            .eq('user_id', targetUserId)
+            .eq('status', 'completed')
+            .gte('created_at', oneYearAgo.toISOString());
+
+        if (!sessions || sessions.length === 0) return [];
+
+        const sessionIds = sessions.map(s => s.id);
+
+        // Get answers from these sessions
+        const { data: answers } = await supabase
+            .from('exam_answers')
+            .select('answered_at')
+            .in('session_id', sessionIds)
+            .gte('answered_at', oneYearAgo.toISOString());
+
+        if (!answers || answers.length === 0) return [];
+
+        const activityMap = new Map<string, number>();
+
+        answers.forEach((a: any) => {
+            if (!a.answered_at) return;
+            const date = a.answered_at.split('T')[0];
+            activityMap.set(date, (activityMap.get(date) || 0) + 1);
+        });
+
+        // Determine max activity for scaling levels
+        const counts = Array.from(activityMap.values());
+        const maxCount = Math.max(...counts, 1);
+
+        const result: { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }[] = [];
+
+        // Fill dates for calendar visualization if needed, but for now just return active days.
+        // The heatmap component can handle filling gaps if necessary, or we send sparse data.
+        // Let's send sparse data to save bandwidth, unless the component needs full range.
+
+        activityMap.forEach((count, date) => {
+            let level: 0 | 1 | 2 | 3 | 4 = 0;
+            if (count === 0) level = 0;
+            else if (count <= maxCount * 0.25) level = 1;
+            else if (count <= maxCount * 0.50) level = 2;
+            else if (count <= maxCount * 0.75) level = 3;
+            else level = 4;
+
+            result.push({ date, count, level });
+        });
+
+        return result.sort((a, b) => a.date.localeCompare(b.date));
+    },
+
     async getOrCreateDailyQuizSession(userId: string): Promise<string | null> {
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 

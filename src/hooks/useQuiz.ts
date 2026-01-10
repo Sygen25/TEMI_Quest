@@ -18,7 +18,7 @@ export interface QuizState {
     note: string;
 }
 
-export type QuizFilter = 'all' | 'not_answered' | 'answered' | 'correct' | 'incorrect' | 'doubt';
+export type QuizFilter = 'all' | 'not_answered' | 'answered' | 'correct' | 'incorrect' | 'doubt' | 'has_notes';
 
 export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQuizProps) {
     const [history, setHistory] = useState<QuizState[]>([]);
@@ -57,8 +57,14 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
         }
     }, [initialQuestion, initialSelectedOption, history.length]);
 
+    // Ref to prevent concurrent fetches (Strict Mode protection)
+    const isFetchingRef = useRef(false);
+
     const fetchNextQuestion = useCallback(async (reset: boolean = false) => {
         if (!topic) return;
+
+        // Prevent concurrent fetches (React Strict Mode can trigger this twice)
+        if (isFetchingRef.current && !reset) return;
 
         // If not resetting and we have history ahead, just move forward
         if (!reset && currentIndex < history.length - 1) {
@@ -66,6 +72,7 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
             return;
         }
 
+        isFetchingRef.current = true;
         setLoading(true);
         setError(null);
 
@@ -148,6 +155,8 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
                             return isAnswered && isCorrect === false;
                         case 'doubt':
                             return isFlagged === true;
+                        case 'has_notes':
+                            return !!notesMap.get(q.id);
                         case 'all':
                             return true;
                         default:
@@ -158,7 +167,14 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
 
             setTotalQuestions(candidates.length);
 
-            if (candidates.length === 0) {
+            // Exclude questions already shown in this session
+            const shownQuestionIds = new Set(history.map(h => h.question.id));
+            const unseenCandidates = candidates.filter(q => !shownQuestionIds.has(q.id));
+
+            // If all candidates have been shown, allow repeats (or show a message)
+            const finalCandidates = unseenCandidates.length > 0 ? unseenCandidates : candidates;
+
+            if (finalCandidates.length === 0) {
                 if (activeFilters.includes('not_answered') && activeFilters.length === 1 && questions.length > 0) {
                     setError('Você já respondeu todas as questões deste tópico!');
                 } else {
@@ -168,8 +184,8 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
                 return;
             }
 
-            // 5. Pick Random
-            const randomQ = candidates[Math.floor(Math.random() * candidates.length)];
+            // 5. Pick Random from unseen candidates
+            const randomQ = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
             const randomQFlagged = flaggedMap.get(randomQ.id) || false;
 
             const newItem: QuizState = {
@@ -199,6 +215,7 @@ export function useQuiz({ topic, initialQuestion, initialSelectedOption }: UseQu
             console.error('[useQuiz] Error fetching question:', err);
             setError('Erro ao carregar questão. Tente novamente.');
         } finally {
+            isFetchingRef.current = false;
             setLoading(false);
         }
     }, [topic, currentIndex, history.length, filter]);

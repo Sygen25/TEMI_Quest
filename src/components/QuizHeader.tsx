@@ -38,7 +38,8 @@ export function QuizHeader({
         { id: 'answered', label: 'Já Respondidas', icon: PlayCircle, color: 'text-blue-500' },
         { id: 'correct', label: 'Acertou', icon: CheckCircle2, color: 'text-green-500' },
         { id: 'incorrect', label: 'Errou', icon: XCircle, color: 'text-red-500' },
-        { id: 'doubt', label: 'Dúvidas', icon: HelpCircle, color: 'text-amber-500' }
+        { id: 'doubt', label: 'Dúvidas', icon: HelpCircle, color: 'text-amber-500' },
+        { id: 'has_notes', label: 'Com Anotações', icon: StickyNote, color: 'text-purple-500' }
     ];
 
     const toggleLocalFilter = (id: QuizFilter) => {
